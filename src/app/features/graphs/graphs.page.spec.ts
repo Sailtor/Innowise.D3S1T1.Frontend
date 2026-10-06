@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ApolloTestingController, ApolloTestingModule } from 'apollo-angular/testing';
 import { GraphsPage } from './graphs.page';
-import { AggregationChartsDocument, AggregationChartsRoomsDocument } from '../../core/graphql/generated/graphql';
+import { AggregationChartsDocument, DashboardFiltersRoomsDocument } from '../../core/graphql/generated/graphql';
 
 describe('GraphsPage', () => {
   let controller: ApolloTestingController;
@@ -24,7 +24,7 @@ describe('GraphsPage', () => {
     const fixture = TestBed.createComponent(GraphsPage);
     fixture.detectChanges();
 
-    controller.expectOne(AggregationChartsRoomsDocument).flushData({ availableRooms: [] });
+    controller.expectOne(DashboardFiltersRoomsDocument).flushData({ availableRooms: [] });
     controller.expectOne(AggregationChartsDocument).flushData({ metricAggregation: [] });
 
     const compiled = fixture.nativeElement as HTMLElement;

@@ -1,0 +1,31 @@
+<div class="filter-bar d-flex flex-wrap gap-3 mb-3">
+  <mat-form-field appearance="outline" class="filter-field">
+    <mat-label>Rooms</mat-label>
+    <mat-select multiple [value]="filters.rooms()" (selectionChange)="onRoomsChange($event.value)">
+      @for (room of filters.roomOptions(); track room) {
+        <mat-option [value]="room">{{ room }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (showTypeFilter()) {
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Type</mat-label>
+      <mat-select [value]="filters.type()" (selectionChange)="onTypeChange($event.value)">
+        <mat-option [value]="null">All types</mat-option>
+        @for (type of types; track type) {
+          <mat-option [value]="type">{{ type }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+
+  <mat-form-field appearance="outline" class="filter-field">
+    <mat-label>Range</mat-label>
+    <mat-select [value]="filters.rangeDurationMs()" (selectionChange)="onRangeChange($event.value)">
+      @for (preset of rangePresets; track preset.label) {
+        <mat-option [value]="preset.durationMs">{{ preset.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>

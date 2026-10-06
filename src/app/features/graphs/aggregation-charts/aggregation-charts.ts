@@ -17,17 +17,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSlideToggleModule, MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import {
-  AggregationChartsGQL,
-  AggregationChartsQuery,
-  AggregationChartsRoomsGQL,
-} from '../../../core/graphql/generated/graphql';
+import { AggregationChartsGQL, AggregationChartsQuery } from '../../../core/graphql/generated/graphql';
 import {
   AggregationField,
   MetricAggregationInput,
   TimeInterval,
 } from '../../../core/graphql/generated/schema-types';
-import { AGGREGATION_FIELD_LABEL, presetToRange, RANGE_PRESETS, toChartValue } from '../aggregation-display';
+import { AGGREGATION_FIELD_LABEL, toChartValue } from '../aggregation-display';
+import { DashboardFiltersService, presetToRange } from '../../../core/filters/dashboard-filters';
 
 type Bucket = AggregationChartsQuery['metricAggregation'][number];
 
@@ -74,26 +71,24 @@ const CHART_REGISTERABLES = [
 })
 export class AggregationCharts {
   private readonly aggregationChartsGQL = inject(AggregationChartsGQL);
-  private readonly roomsGQL = inject(AggregationChartsRoomsGQL);
+  private readonly filters = inject(DashboardFiltersService);
 
   protected readonly fields = Object.values(AggregationField);
-  protected readonly rangePresets = RANGE_PRESETS;
   protected readonly intervals = Object.values(TimeInterval);
 
   protected readonly field = signal<AggregationField>(AggregationField.EnergyAmount);
-  protected readonly rangeDurationMs = signal<number>(RANGE_PRESETS[1].durationMs);
   protected readonly interval = signal<TimeInterval>(TimeInterval.Hour);
-  protected readonly roomFilter = signal<string | null>(null);
   protected readonly groupByRoom = signal(false);
 
   private readonly variables = computed<{ input: MetricAggregationInput }>(() => {
-    const { from, to } = presetToRange(this.rangeDurationMs());
+    const { from, to } = presetToRange(this.filters.rangeDurationMs());
+    const rooms = this.filters.rooms();
     return {
       input: {
         field: this.field(),
         interval: this.interval(),
         groupByRoom: this.groupByRoom(),
-        rooms: this.roomFilter() ? [this.roomFilter()!] : undefined,
+        rooms: rooms.length ? rooms : undefined,
         from,
         to,
       },
@@ -108,8 +103,6 @@ export class AggregationCharts {
     ),
     { initialValue: undefined },
   );
-
-  private readonly roomsResult = toSignal(this.roomsGQL.watch().valueChanges, { initialValue: undefined });
 
   protected readonly loading = computed(() => this.result()?.loading ?? true);
   protected readonly error = computed(() => this.result()?.error);
@@ -129,11 +122,6 @@ export class AggregationCharts {
 
   protected readonly hasData = computed(() => (this.lastCompleteData()?.metricAggregation.length ?? 0) > 0);
   protected readonly showInitialLoading = computed(() => this.loading() && this.lastCompleteData() === undefined);
-
-  protected readonly rooms = computed(() => {
-    const current = this.roomsResult();
-    return current?.dataState === 'complete' ? current.data.availableRooms : [];
-  });
 
   protected readonly chartData = computed<ChartConfiguration<'line'>['data']>(() => {
     const buckets = this.lastCompleteData()?.metricAggregation ?? [];
@@ -192,16 +180,8 @@ export class AggregationCharts {
     this.field.set(field);
   }
 
-  protected onRangePresetChange(durationMs: number): void {
-    this.rangeDurationMs.set(durationMs);
-  }
-
   protected onIntervalChange(interval: TimeInterval): void {
     this.interval.set(interval);
-  }
-
-  protected onRoomFilterChange(room: string | null): void {
-    this.roomFilter.set(room);
   }
 
   protected onGroupByRoomChange(event: MatSlideToggleChange): void {

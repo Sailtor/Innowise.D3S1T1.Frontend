@@ -7,17 +7,17 @@ import type * as Types from './schema-types';
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
+export type DashboardFiltersRoomsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DashboardFiltersRoomsQuery = { availableRooms: Array<string> };
+
 export type AggregationChartsQueryVariables = Exact<{
   input: Types.MetricAggregationInput;
 }>;
 
 
 export type AggregationChartsQuery = { metricAggregation: Array<{ room: string | null, bucketStart: string | null, stats: { count: number, min: number | null, max: number | null, average: number | null, sum: number | null } }> };
-
-export type AggregationChartsRoomsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type AggregationChartsRoomsQuery = { availableRooms: Array<string> };
 
 export type LatestValuesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -42,11 +42,22 @@ export type ReadingsTableQuery = { metricReadings: { totalCount: number, pageInf
       | { __typename: 'MotionReading', isMotionDetected: boolean, id: string, room: string, type: Types.MetricReadingType, receivedAt: string }
      | null> | null } | null };
 
-export type ReadingsTableRoomsQueryVariables = Exact<{ [key: string]: never; }>;
+export const DashboardFiltersRoomsDocument = gql`
+    query DashboardFiltersRooms {
+  availableRooms
+}
+    `;
 
-
-export type ReadingsTableRoomsQuery = { availableRooms: Array<string> };
-
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class DashboardFiltersRoomsGQL extends Apollo.Query<DashboardFiltersRoomsQuery, DashboardFiltersRoomsQueryVariables> {
+    document = DashboardFiltersRoomsDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
 export const AggregationChartsDocument = gql`
     query AggregationCharts($input: MetricAggregationInput!) {
   metricAggregation(input: $input) {
@@ -68,22 +79,6 @@ export const AggregationChartsDocument = gql`
   })
   export class AggregationChartsGQL extends Apollo.Query<AggregationChartsQuery, AggregationChartsQueryVariables> {
     document = AggregationChartsDocument;
-    
-    constructor(apollo: Apollo.Apollo) {
-      super(apollo);
-    }
-  }
-export const AggregationChartsRoomsDocument = gql`
-    query AggregationChartsRooms {
-  availableRooms
-}
-    `;
-
-  @Injectable({
-    providedIn: 'root'
-  })
-  export class AggregationChartsRoomsGQL extends Apollo.Query<AggregationChartsRoomsQuery, AggregationChartsRoomsQueryVariables> {
-    document = AggregationChartsRoomsDocument;
     
     constructor(apollo: Apollo.Apollo) {
       super(apollo);
@@ -160,22 +155,6 @@ export const ReadingsTableDocument = gql`
   })
   export class ReadingsTableGQL extends Apollo.Query<ReadingsTableQuery, ReadingsTableQueryVariables> {
     document = ReadingsTableDocument;
-    
-    constructor(apollo: Apollo.Apollo) {
-      super(apollo);
-    }
-  }
-export const ReadingsTableRoomsDocument = gql`
-    query ReadingsTableRooms {
-  availableRooms
-}
-    `;
-
-  @Injectable({
-    providedIn: 'root'
-  })
-  export class ReadingsTableRoomsGQL extends Apollo.Query<ReadingsTableRoomsQuery, ReadingsTableRoomsQueryVariables> {
-    document = ReadingsTableRoomsDocument;
     
     constructor(apollo: Apollo.Apollo) {
       super(apollo);
