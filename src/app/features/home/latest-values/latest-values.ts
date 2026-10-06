@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { LatestValuesGQL, LatestValuesQuery } from '../../../core/graphql/generated/graphql';
-import { displayValue, typeLabel } from '../shared/reading-display';
+import { displayValue, typeLabel } from '../../../core/reading-display';
 
 type ReadingRow = LatestValuesQuery['latestReadings'][number];
 

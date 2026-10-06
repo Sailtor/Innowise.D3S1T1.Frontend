@@ -1,10 +1,55 @@
-<header class="shell-header">
-  <h1 class="shell-title">D3S1T1 Metrics Dashboard</h1>
-  <nav class="shell-nav" aria-label="Primary">
-    <a routerLink="/">Dashboard</a>
-  </nav>
-</header>
+<mat-sidenav-container class="shell-container">
+  <mat-sidenav
+    #drawer
+    class="shell-nav"
+    fixedInViewport
+    [attr.role]="isHandset() ? 'dialog' : 'navigation'"
+    [mode]="isHandset() ? 'over' : 'side'"
+    [opened]="!isHandset()"
+  >
+    <mat-nav-list>
+      <a
+        mat-list-item
+        routerLink="/"
+        routerLinkActive="shell-nav-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        Home
+      </a>
+      <a mat-list-item routerLink="/graphs" routerLinkActive="shell-nav-active">Graphs</a>
+      <a mat-list-item routerLink="/table" routerLinkActive="shell-nav-active">Table</a>
+    </mat-nav-list>
 
-<main class="shell-main">
-  <router-outlet />
-</main>
+    <div class="shell-nav-footer">
+      <mat-button-toggle-group
+        class="shell-theme-switch"
+        aria-label="Theme"
+        [value]="theme.isDark() ? 'dark' : 'light'"
+        (change)="onThemeChange($event)"
+      >
+        <mat-button-toggle value="light">Light</mat-button-toggle>
+        <mat-button-toggle value="dark">Dark</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="shell-toolbar">
+      @if (isHandset()) {
+        <button
+          type="button"
+          aria-label="Toggle navigation"
+          matIconButton
+          (click)="drawer.toggle()"
+        >
+          &#9776;
+        </button>
+      }
+      <h1 class="shell-title">D3S1T1 Metrics Dashboard</h1>
+    </mat-toolbar>
+
+    <main class="shell-main">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

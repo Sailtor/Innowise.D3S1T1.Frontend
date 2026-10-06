@@ -18,7 +18,7 @@ import {
   MetricReadingType,
   SortEnumType,
 } from '../../../core/graphql/generated/schema-types';
-import { displayValue, typeLabel } from '../shared/reading-display';
+import { displayValue, typeLabel } from '../../../core/reading-display';
 
 type ReadingRow = NonNullable<NonNullable<NonNullable<ReadingsTableQuery['metricReadings']>['items']>[number]>;
 
