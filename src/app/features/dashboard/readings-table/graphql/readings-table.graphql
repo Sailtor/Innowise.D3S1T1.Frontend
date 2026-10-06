@@ -1,0 +1,31 @@
+query ReadingsTable($skip: Int, $take: Int, $where: MetricReadingFilterInput, $order: [MetricReadingSortInput!]) {
+  metricReadings(skip: $skip, take: $take, where: $where, order: $order) {
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+    totalCount
+    items {
+      __typename
+      id
+      room
+      type
+      receivedAt
+      ... on EnergyReading {
+        energyAmount
+      }
+      ... on AirQualityReading {
+        co2
+        pm25
+        humidity
+      }
+      ... on MotionReading {
+        isMotionDetected
+      }
+    }
+  }
+}
+
+query ReadingsTableRooms {
+  availableRooms
+}

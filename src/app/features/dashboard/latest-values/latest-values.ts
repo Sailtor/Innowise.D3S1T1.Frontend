@@ -1,14 +1,9 @@
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { LatestValuesGQL, LatestValuesQuery } from '../../../core/graphql/generated/graphql';
+import { displayValue, typeLabel } from '../shared/reading-display';
 
 type ReadingRow = LatestValuesQuery['latestReadings'][number];
-
-const READING_TYPE_LABEL: Record<ReadingRow['__typename'], string> = {
-  EnergyReading: 'Energy',
-  AirQualityReading: 'Air quality',
-  MotionReading: 'Motion',
-};
 
 @Component({
   selector: 'app-latest-values',
@@ -37,17 +32,10 @@ export class LatestValues {
   protected readonly rooms = computed(() => this.completeData()?.rooms ?? []);
 
   protected typeLabel(reading: ReadingRow): string {
-    return READING_TYPE_LABEL[reading.__typename];
+    return typeLabel(reading);
   }
 
   protected displayValue(reading: ReadingRow): string {
-    switch (reading.__typename) {
-      case 'EnergyReading':
-        return `${reading.energyAmount.toFixed(2)} kWh`;
-      case 'AirQualityReading':
-        return `CO2 ${reading.co2.toFixed(0)} ppm, PM2.5 ${reading.pm25.toFixed(1)}, humidity ${reading.humidity.toFixed(0)}%`;
-      case 'MotionReading':
-        return reading.isMotionDetected ? 'Motion detected' : 'No motion';
-    }
+    return displayValue(reading);
   }
 }

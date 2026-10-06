@@ -1,10 +1,17 @@
 schema: src/app/core/graphql/schema.graphql
 documents: src/app/**/*.graphql
+config:
+  scalars:
+    DateTime: string
 generates:
-  src/app/core/graphql/generated/graphql.ts:
+  src/app/core/graphql/generated/schema-types.ts:
     plugins:
       - typescript
+  src/app/core/graphql/generated/graphql.ts:
+    plugins:
       - typescript-operations
       - typescript-apollo-angular
     config:
       preResolveTypes: false
+      importSchemaTypesFrom: './src/app/core/graphql/generated/schema-types'
+      namespacedImportName: Types
