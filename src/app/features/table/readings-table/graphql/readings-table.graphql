@@ -25,7 +25,3 @@ query ReadingsTable($skip: Int, $take: Int, $where: MetricReadingFilterInput, $o
     }
   }
 }
-
-query ReadingsTableRooms {
-  availableRooms
-}

@@ -11,7 +11,3 @@ query AggregationCharts($input: MetricAggregationInput!) {
     }
   }
 }
-
-query AggregationChartsRooms {
-  availableRooms
-}

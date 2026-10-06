@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ApolloTestingController, ApolloTestingModule } from 'apollo-angular/testing';
 import { ReadingsTable } from './readings-table';
-import { ReadingsTableDocument, ReadingsTableRoomsDocument } from '../../../core/graphql/generated/graphql';
+import { ReadingsTableDocument, DashboardFiltersRoomsDocument } from '../../../core/graphql/generated/graphql';
+import { DashboardFiltersService } from '../../../core/filters/dashboard-filters';
 
 // Pagination/sort/filter handlers and derived signals are `protected` (template-only
 // by design) - tests reach them the conventional Angular way, through the component
@@ -15,12 +16,11 @@ function asTestable(component: ReadingsTable) {
     hasData: () => boolean;
     error: () => unknown;
     onPage: (event: { pageIndex: number; pageSize: number; length: number }) => void;
-    onRoomFilterChange: (room: string | null) => void;
   };
 }
 
 function flushRooms(controller: ApolloTestingController, rooms: string[] = []): void {
-  controller.expectOne(ReadingsTableRoomsDocument).flushData({ availableRooms: rooms });
+  controller.expectOne(DashboardFiltersRoomsDocument).flushData({ availableRooms: rooms });
 }
 
 describe('ReadingsTable', () => {
@@ -117,7 +117,7 @@ describe('ReadingsTable', () => {
     await fixture.whenStable();
 
     const component = asTestable(fixture.componentInstance);
-    component.onRoomFilterChange('Lobby');
+    TestBed.inject(DashboardFiltersService).setRooms(['Lobby']);
     await fixture.whenStable();
 
     // New watch query is in flight (filter changed); rows from the previous
@@ -126,7 +126,14 @@ describe('ReadingsTable', () => {
     expect(component.showInitialLoading()).toBeFalse();
 
     const filteredRequest = controller.expectOne(ReadingsTableDocument);
-    expect(filteredRequest.operation.variables['where']).toEqual({ room: { eq: 'Lobby' }, type: undefined });
+    const where = filteredRequest.operation.variables['where'];
+    expect(where).toEqual(
+      jasmine.objectContaining({
+        room: { in: ['Lobby'] },
+        type: undefined,
+        receivedAt: { gte: jasmine.any(String), lte: jasmine.any(String) },
+      }),
+    );
     filteredRequest.flushData({
       metricReadings: { totalCount: 0, pageInfo: { hasNextPage: false, hasPreviousPage: false }, items: [] },
     });

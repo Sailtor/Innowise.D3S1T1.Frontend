@@ -4,21 +4,15 @@ import { switchMap } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import {
-  ReadingsTableGQL,
-  ReadingsTableQuery,
-  ReadingsTableRoomsGQL,
-} from '../../../core/graphql/generated/graphql';
+import { ReadingsTableGQL, ReadingsTableQuery } from '../../../core/graphql/generated/graphql';
 import {
   MetricReadingFilterInput,
   MetricReadingSortInput,
-  MetricReadingType,
   SortEnumType,
 } from '../../../core/graphql/generated/schema-types';
 import { displayValue, typeLabel } from '../../../core/reading-display';
+import { DashboardFiltersService, presetToRange } from '../../../core/filters/dashboard-filters';
 
 type ReadingRow = NonNullable<NonNullable<NonNullable<ReadingsTableQuery['metricReadings']>['items']>[number]>;
 
@@ -32,29 +26,19 @@ function isSortableField(value: string): value is SortableField {
 
 @Component({
   selector: 'app-readings-table',
-  imports: [
-    MatTableModule,
-    MatSortModule,
-    MatPaginatorModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    MatProgressBarModule,
-  ],
+  imports: [MatTableModule, MatSortModule, MatPaginatorModule, MatProgressBarModule],
   templateUrl: './readings-table.html',
   styleUrl: './readings-table.sass',
 })
 export class ReadingsTable {
   private readonly readingsTableGQL = inject(ReadingsTableGQL);
-  private readonly roomsGQL = inject(ReadingsTableRoomsGQL);
+  private readonly filters = inject(DashboardFiltersService);
 
   protected readonly displayedColumns = ['room', 'type', 'value', 'receivedAt'];
-  protected readonly types = Object.values(MetricReadingType);
 
   protected readonly pageIndex = signal(0);
   protected readonly sortField = signal<SortableField | null>(null);
   protected readonly sortDirection = signal<SortEnumType>(SortEnumType.Asc);
-  protected readonly roomFilter = signal<string | null>(null);
-  protected readonly typeFilter = signal<MetricReadingType | null>(null);
 
   private readonly variables = computed(() => {
     const order: MetricReadingSortInput[] = [];
@@ -63,15 +47,14 @@ export class ReadingsTable {
       order.push({ [field]: this.sortDirection() });
     }
 
-    const room = this.roomFilter();
-    const type = this.typeFilter();
-    const where: MetricReadingFilterInput | undefined =
-      room || type
-        ? {
-            room: room ? { eq: room } : undefined,
-            type: type ? { eq: type } : undefined,
-          }
-        : undefined;
+    const rooms = this.filters.rooms();
+    const type = this.filters.type();
+    const { from, to } = presetToRange(this.filters.rangeDurationMs());
+    const where: MetricReadingFilterInput = {
+      room: rooms.length ? { in: rooms } : undefined,
+      type: type ? { eq: type } : undefined,
+      receivedAt: { gte: from, lte: to },
+    };
 
     return {
       skip: this.pageIndex() * PAGE_SIZE,
@@ -90,8 +73,6 @@ export class ReadingsTable {
     { initialValue: undefined },
   );
 
-  private readonly roomsResult = toSignal(this.roomsGQL.watch().valueChanges, { initialValue: undefined });
-
   protected readonly loading = computed(() => this.result()?.loading ?? true);
   protected readonly error = computed(() => this.result()?.error);
 
@@ -107,6 +88,13 @@ export class ReadingsTable {
       if (current?.dataState === 'complete') {
         this.lastCompleteData.set(current.data);
       }
+    });
+
+    effect(() => {
+      this.filters.rooms();
+      this.filters.type();
+      this.filters.rangeDurationMs();
+      this.pageIndex.set(0);
     });
   }
 
@@ -133,11 +121,6 @@ export class ReadingsTable {
     return seg.totalCount;
   });
 
-  protected readonly rooms = computed(() => {
-    const current = this.roomsResult();
-    return current?.dataState === 'complete' ? current.data.availableRooms : [];
-  });
-
   protected typeLabel(reading: ReadingRow): string {
     return typeLabel(reading);
   }
@@ -161,16 +144,6 @@ export class ReadingsTable {
     }
     this.sortField.set(sort.active);
     this.sortDirection.set(sort.direction === 'asc' ? SortEnumType.Asc : SortEnumType.Desc);
-    this.pageIndex.set(0);
-  }
-
-  protected onRoomFilterChange(room: string | null): void {
-    this.roomFilter.set(room);
-    this.pageIndex.set(0);
-  }
-
-  protected onTypeFilterChange(type: MetricReadingType | null): void {
-    this.typeFilter.set(type);
     this.pageIndex.set(0);
   }
 }

@@ -3,8 +3,9 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { ApolloTestingController, ApolloTestingModule } from 'apollo-angular/testing';
 import { ChartConfiguration } from 'chart.js';
 import { AggregationCharts } from './aggregation-charts';
-import { AggregationChartsDocument, AggregationChartsRoomsDocument } from '../../../core/graphql/generated/graphql';
+import { AggregationChartsDocument, DashboardFiltersRoomsDocument } from '../../../core/graphql/generated/graphql';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
+import { DashboardFiltersService } from '../../../core/filters/dashboard-filters';
 
 // `field`/`chartData` etc. are `protected` (template-only by design, matching
 // ReadingsTable's own test convention) - tests reach them through an instance cast.
@@ -20,7 +21,7 @@ function asTestable(component: AggregationCharts) {
 }
 
 function flushRooms(controller: ApolloTestingController, rooms: string[] = []): void {
-  controller.expectOne(AggregationChartsRoomsDocument).flushData({ availableRooms: rooms });
+  controller.expectOne(DashboardFiltersRoomsDocument).flushData({ availableRooms: rooms });
 }
 
 describe('AggregationCharts', () => {
@@ -99,6 +100,23 @@ describe('AggregationCharts', () => {
 
     const request = controller.expectOne(AggregationChartsDocument);
     expect(request.operation.variables['input'].field).toBe('CO2');
+    request.flushData({ metricAggregation: [] });
+    await fixture.whenStable();
+  });
+
+  it('refetches with the rooms array when the shared room filter changes', async () => {
+    const fixture = TestBed.createComponent(AggregationCharts);
+    fixture.detectChanges();
+
+    flushRooms(controller, ['Kitchen', 'Lobby']);
+    controller.expectOne(AggregationChartsDocument).flushData({ metricAggregation: [] });
+    await fixture.whenStable();
+
+    TestBed.inject(DashboardFiltersService).setRooms(['Lobby']);
+    await fixture.whenStable();
+
+    const request = controller.expectOne(AggregationChartsDocument);
+    expect(request.operation.variables['input'].rooms).toEqual(['Lobby']);
     request.flushData({ metricAggregation: [] });
     await fixture.whenStable();
   });
