@@ -19,34 +19,36 @@
       </div>
     }
 
-    <table mat-table [dataSource]="rows()" matSort (matSortChange)="onSort($event)" class="readings-mat-table">
-      <ng-container matColumnDef="room">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Room</th>
-        <td mat-cell *matCellDef="let reading">{{ reading.room }}</td>
-      </ng-container>
+    <div class="table-scroll">
+      <table mat-table [dataSource]="rows()" matSort (matSortChange)="onSort($event)" class="readings-mat-table">
+        <ng-container matColumnDef="room">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Room</th>
+          <td mat-cell *matCellDef="let reading">{{ reading.room }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="type">
-        <th mat-header-cell *matHeaderCellDef>Type</th>
-        <td mat-cell *matCellDef="let reading">{{ typeLabel(reading) }}</td>
-      </ng-container>
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef scope="col">Type</th>
+          <td mat-cell *matCellDef="let reading">{{ typeLabel(reading) }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="value">
-        <th mat-header-cell *matHeaderCellDef>Value</th>
-        <td mat-cell *matCellDef="let reading">{{ displayValue(reading) }}</td>
-      </ng-container>
+        <ng-container matColumnDef="value">
+          <th mat-header-cell *matHeaderCellDef scope="col">Value</th>
+          <td mat-cell *matCellDef="let reading">{{ displayValue(reading) }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="receivedAt">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Received at</th>
-        <td mat-cell *matCellDef="let reading">{{ receivedAtLabel(reading) }}</td>
-      </ng-container>
+        <ng-container matColumnDef="receivedAt">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Received at</th>
+          <td mat-cell *matCellDef="let reading">{{ receivedAtLabel(reading) }}</td>
+        </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="reading-row"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="reading-row"></tr>
 
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" [attr.colspan]="displayedColumns.length">No readings match the current filters.</td>
-      </tr>
-    </table>
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="displayedColumns.length">No readings match the current filters.</td>
+        </tr>
+      </table>
+    </div>
 
     <mat-paginator
       [length]="totalCount()"

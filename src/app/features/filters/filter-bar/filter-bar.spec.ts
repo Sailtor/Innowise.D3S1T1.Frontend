@@ -76,6 +76,32 @@ describe('FilterBar', () => {
     expect(typeLabel).toBeUndefined();
   });
 
+  it('disables the Rooms select while the rooms query is loading', async () => {
+    const fixture = TestBed.createComponent(FilterBar);
+    fixture.detectChanges();
+
+    expect(filters.roomsLoading()).toBeTrue();
+    const select = (fixture.nativeElement as HTMLElement).querySelector('mat-select');
+    expect(select?.getAttribute('aria-disabled')).toBe('true');
+
+    flushRooms(controller);
+    await fixture.whenStable();
+
+    expect(filters.roomsLoading()).toBeFalse();
+  });
+
+  it('shows an inline error hint when the rooms query fails', async () => {
+    const fixture = TestBed.createComponent(FilterBar);
+    fixture.detectChanges();
+
+    controller.expectOne(DashboardFiltersRoomsDocument).networkError(new Error('Gateway unreachable'));
+    await fixture.whenStable();
+
+    expect(filters.roomsError()).toBeTruthy();
+    const hint = (fixture.nativeElement as HTMLElement).querySelector('.filter-error');
+    expect(hint?.textContent).toContain('Could not load rooms.');
+  });
+
   it('writes range preset selection through to the shared service', async () => {
     const fixture = TestBed.createComponent(FilterBar);
     fixture.detectChanges();

@@ -23,6 +23,43 @@ describe('Shell', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
+  it('renders a skip link targeting a focusable main content region', () => {
+    const fixture = TestBed.createComponent(Shell);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    const skipLink = compiled.querySelector('a.skip-link');
+    expect(skipLink?.getAttribute('href')).toBe('#main-content');
+
+    const main = compiled.querySelector('#main-content');
+    expect(main).toBeTruthy();
+    // tabindex="-1" is what makes a fragment link actually move keyboard focus to this
+    // element (not just scroll to it) - without it, href="#main-content" alone leaves
+    // document.activeElement on <body> (confirmed manually - see verification.md).
+    expect(main?.getAttribute('tabindex')).toBe('-1');
+  });
+
+  it('moves keyboard focus to the main content when the skip link is activated', () => {
+    const fixture = TestBed.createComponent(Shell);
+    // Focus/activeElement only behaves realistically for nodes attached to the live
+    // document - fixtures aren't attached by default.
+    document.body.appendChild(fixture.nativeElement);
+    fixture.detectChanges();
+
+    try {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const skipLink = compiled.querySelector('a.skip-link') as HTMLAnchorElement;
+
+      skipLink.focus();
+      skipLink.click();
+
+      const main = compiled.querySelector('#main-content');
+      expect(document.activeElement).toBe(main);
+    } finally {
+      fixture.nativeElement.remove();
+    }
+  });
+
   it('renders the three nav entries', () => {
     const fixture = TestBed.createComponent(Shell);
     fixture.detectChanges();

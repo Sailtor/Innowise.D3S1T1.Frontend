@@ -1,11 +1,19 @@
 <div class="filter-bar d-flex flex-wrap gap-3 mb-3">
   <mat-form-field appearance="outline" class="filter-field">
     <mat-label>Rooms</mat-label>
-    <mat-select multiple [value]="filters.rooms()" (selectionChange)="onRoomsChange($event.value)">
+    <mat-select
+      multiple
+      [value]="filters.rooms()"
+      [disabled]="filters.roomsLoading()"
+      (selectionChange)="onRoomsChange($event.value)"
+    >
       @for (room of filters.roomOptions(); track room) {
         <mat-option [value]="room">{{ room }}</mat-option>
       }
     </mat-select>
+    @if (filters.roomsError()) {
+      <mat-hint class="filter-error">Could not load rooms.</mat-hint>
+    }
   </mat-form-field>
 
   @if (showTypeFilter()) {
