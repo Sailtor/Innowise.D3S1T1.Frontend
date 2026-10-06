@@ -35,6 +35,9 @@ export class DashboardFiltersService {
     return current?.dataState === 'complete' ? current.data.availableRooms : [];
   });
 
+  readonly roomsLoading = computed(() => this.roomsResult()?.loading ?? true);
+  readonly roomsError = computed(() => this.roomsResult()?.error);
+
   readonly rooms = signal<string[]>([]);
   readonly type = signal<MetricReadingType | null>(null);
   readonly rangeDurationMs = signal<number>(RANGE_PRESETS[1].durationMs);

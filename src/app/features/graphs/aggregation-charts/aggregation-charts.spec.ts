@@ -152,4 +152,33 @@ describe('AggregationCharts', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.error-banner[role="alert"]')).toBeTruthy();
   });
+
+  it('keeps the chart on screen when a refetch fails after data was already loaded', async () => {
+    const fixture = TestBed.createComponent(AggregationCharts);
+    fixture.detectChanges();
+
+    flushRooms(controller);
+    controller.expectOne(AggregationChartsDocument).flushData({
+      metricAggregation: [
+        { room: null, bucketStart: '2026-01-01T00:00:00.000Z', stats: { count: 1, min: 1, max: 1, average: 1, sum: 1 } },
+      ],
+    });
+    await fixture.whenStable();
+
+    asTestable(fixture.componentInstance).onFieldChange('CO2');
+    await fixture.whenStable();
+
+    controller.expectOne(AggregationChartsDocument).networkError(new Error('Gateway unreachable'));
+    await fixture.whenStable();
+
+    // The refetch failed, but the previously loaded chart must stay visible - an error
+    // must never wipe a chart the user already had (same intent as ReadingsTable's D-3).
+    const component = asTestable(fixture.componentInstance);
+    expect(component.hasData()).toBeTrue();
+    expect(component.error()).toBeTruthy();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('canvas')).toBeTruthy();
+    expect(compiled.querySelector('.error-banner[role="alert"]')?.textContent).toContain('refresh failed');
+  });
 });

@@ -70,6 +70,14 @@ describe('ReadingsTable', () => {
 
     const renderedRows = (fixture.nativeElement as HTMLElement).querySelectorAll('tr.reading-row');
     expect(renderedRows.length).toBe(1);
+
+    const headerCells = (fixture.nativeElement as HTMLElement).querySelectorAll('th[mat-header-cell]');
+    expect(headerCells.length).toBe(4);
+    headerCells.forEach((cell) => expect(cell.getAttribute('scope')).toBe('col'));
+
+    // A narrow viewport must scroll this wrapper, not the whole page (D-6).
+    const scrollWrapper = (fixture.nativeElement as HTMLElement).querySelector('.table-scroll table.readings-mat-table');
+    expect(scrollWrapper).toBeTruthy();
   });
 
   it('requests the next page with skip advanced by the page size', async () => {

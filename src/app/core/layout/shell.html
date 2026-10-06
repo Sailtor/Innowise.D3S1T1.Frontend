@@ -1,3 +1,5 @@
+<a href="#main-content" class="visually-hidden-focusable skip-link">Skip to main content</a>
+
 <mat-sidenav-container class="shell-container">
   <mat-sidenav
     #drawer
@@ -48,7 +50,7 @@
       <h1 class="shell-title">D3S1T1 Metrics Dashboard</h1>
     </mat-toolbar>
 
-    <main class="shell-main">
+    <main class="shell-main" id="main-content" tabindex="-1">
       <router-outlet />
     </main>
   </mat-sidenav-content>
