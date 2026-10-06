@@ -1,0 +1,23 @@
+query LatestValues {
+  latestReadings {
+    __typename
+    id
+    room
+    receivedAt
+    ... on EnergyReading {
+      energyAmount
+    }
+    ... on AirQualityReading {
+      co2
+      pm25
+      humidity
+    }
+    ... on MotionReading {
+      isMotionDetected
+    }
+  }
+  rooms {
+    room
+    totalReadings
+  }
+}

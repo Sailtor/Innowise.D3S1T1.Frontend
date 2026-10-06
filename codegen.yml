@@ -1,0 +1,10 @@
+schema: src/app/core/graphql/schema.graphql
+documents: src/app/**/*.graphql
+generates:
+  src/app/core/graphql/generated/graphql.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-apollo-angular
+    config:
+      preResolveTypes: false
