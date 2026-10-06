@@ -1,0 +1,29 @@
+<section class="latest-values">
+  <h2>Latest values</h2>
+
+  @if (loading()) {
+    <ul class="skeleton" aria-busy="true" aria-live="polite">
+      @for (i of [1, 2, 3]; track i) {
+        <li class="skeleton-row"></li>
+      }
+    </ul>
+  } @else if (error()) {
+    <div class="error-banner" role="alert">
+      Could not load the latest readings. {{ error()?.message }}
+    </div>
+  } @else {
+    <p class="room-count">{{ rooms().length }} room(s) reporting</p>
+
+    <ul class="readings-list">
+      @for (reading of readings(); track reading.id) {
+        <li class="reading-row">
+          <span class="reading-room">{{ reading.room }}</span>
+          <span class="reading-type">{{ typeLabel(reading) }}</span>
+          <span class="reading-value">{{ displayValue(reading) }}</span>
+        </li>
+      } @empty {
+        <li class="reading-row reading-row--empty">No readings yet.</li>
+      }
+    </ul>
+  }
+</section>

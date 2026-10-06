@@ -7,6 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
+    "codegen": "graphql-codegen --config codegen.yml",
     "serve:ssr:Innowise.D3S1T1.Frontend": "node dist/Innowise.D3S1T1.Frontend/server/server.mjs"
   },
   "prettier": {
@@ -31,7 +33,10 @@
     "@angular/platform-server": "^20.3.0",
     "@angular/router": "^20.3.0",
     "@angular/ssr": "^20.3.1",
+    "@apollo/client": "^4.3.2",
+    "apollo-angular": "^14.2.0",
     "express": "^5.1.0",
+    "graphql": "^16.14.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -39,6 +44,10 @@
     "@angular/build": "^20.3.1",
     "@angular/cli": "^20.3.1",
     "@angular/compiler-cli": "^20.3.0",
+    "@graphql-codegen/cli": "^7.4.4",
+    "@graphql-codegen/typescript": "^6.1.1",
+    "@graphql-codegen/typescript-apollo-angular": "^5.0.1",
+    "@graphql-codegen/typescript-operations": "^6.1.10",
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",

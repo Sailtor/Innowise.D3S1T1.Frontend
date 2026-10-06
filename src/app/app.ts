@@ -1,12 +1,10 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { Shell } from './core/layout/shell';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [Shell],
   templateUrl: './app.html',
-  styleUrl: './app.sass'
+  styleUrl: './app.sass',
 })
-export class App {
-  protected readonly title = signal('Innowise.D3S1T1.Frontend');
-}
+export class App {}
