@@ -7,6 +7,18 @@ import type * as Types from './schema-types';
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
+export type AggregationChartsQueryVariables = Exact<{
+  input: Types.MetricAggregationInput;
+}>;
+
+
+export type AggregationChartsQuery = { metricAggregation: Array<{ room: string | null, bucketStart: string | null, stats: { count: number, min: number | null, max: number | null, average: number | null, sum: number | null } }> };
+
+export type AggregationChartsRoomsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AggregationChartsRoomsQuery = { availableRooms: Array<string> };
+
 export type LatestValuesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -35,6 +47,48 @@ export type ReadingsTableRoomsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ReadingsTableRoomsQuery = { availableRooms: Array<string> };
 
+export const AggregationChartsDocument = gql`
+    query AggregationCharts($input: MetricAggregationInput!) {
+  metricAggregation(input: $input) {
+    room
+    bucketStart
+    stats {
+      count
+      min
+      max
+      average
+      sum
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class AggregationChartsGQL extends Apollo.Query<AggregationChartsQuery, AggregationChartsQueryVariables> {
+    document = AggregationChartsDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const AggregationChartsRoomsDocument = gql`
+    query AggregationChartsRooms {
+  availableRooms
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class AggregationChartsRoomsGQL extends Apollo.Query<AggregationChartsRoomsQuery, AggregationChartsRoomsQueryVariables> {
+    document = AggregationChartsRoomsDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
 export const LatestValuesDocument = gql`
     query LatestValues {
   latestReadings {

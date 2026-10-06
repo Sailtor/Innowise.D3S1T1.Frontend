@@ -1,0 +1,17 @@
+query AggregationCharts($input: MetricAggregationInput!) {
+  metricAggregation(input: $input) {
+    room
+    bucketStart
+    stats {
+      count
+      min
+      max
+      average
+      sum
+    }
+  }
+}
+
+query AggregationChartsRooms {
+  availableRooms
+}
