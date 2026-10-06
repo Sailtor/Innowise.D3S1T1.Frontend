@@ -1,0 +1,82 @@
+<section class="readings-table mat-typography mt-4">
+  <h2>Readings</h2>
+
+  <div class="filters d-flex flex-wrap gap-3 mb-3">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Room</mat-label>
+      <mat-select [value]="roomFilter()" (selectionChange)="onRoomFilterChange($event.value)">
+        <mat-option [value]="null">All rooms</mat-option>
+        @for (room of rooms(); track room) {
+          <mat-option [value]="room">{{ room }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Type</mat-label>
+      <mat-select [value]="typeFilter()" (selectionChange)="onTypeFilterChange($event.value)">
+        <mat-option [value]="null">All types</mat-option>
+        @for (type of types; track type) {
+          <mat-option [value]="type">{{ type }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (showInitialLoading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading readings" />
+  } @else if (error() && !hasData()) {
+    <div class="alert alert-danger" role="alert">
+      Could not load readings. {{ error()?.message }}
+    </div>
+  }
+
+  @if (!showInitialLoading() && (hasData() || !error())) {
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Refreshing readings" />
+    }
+    @if (error()) {
+      <div class="alert alert-danger" role="alert">
+        Showing previously loaded readings - refresh failed. {{ error()?.message }}
+      </div>
+    }
+
+    <table mat-table [dataSource]="rows()" matSort (matSortChange)="onSort($event)" class="readings-mat-table">
+      <ng-container matColumnDef="room">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Room</th>
+        <td mat-cell *matCellDef="let reading">{{ reading.room }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="type">
+        <th mat-header-cell *matHeaderCellDef>Type</th>
+        <td mat-cell *matCellDef="let reading">{{ typeLabel(reading) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="value">
+        <th mat-header-cell *matHeaderCellDef>Value</th>
+        <td mat-cell *matCellDef="let reading">{{ displayValue(reading) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="receivedAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Received at</th>
+        <td mat-cell *matCellDef="let reading">{{ receivedAtLabel(reading) }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="reading-row"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">No readings match the current filters.</td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [length]="totalCount()"
+      [pageSize]="20"
+      [pageIndex]="pageIndex()"
+      [hidePageSize]="true"
+      (page)="onPage($event)"
+      aria-label="Select readings page"
+    />
+  }
+</section>
