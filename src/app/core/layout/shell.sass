@@ -1,28 +1,43 @@
+@use '@angular/material' as mat
+
 :host
   display: block
-  min-height: 100%
+  height: 100%
 
-.shell-header
+.shell-container
+  height: 100vh
+
+.shell-nav
+  width: 220px
   display: flex
-  align-items: center
+  flex-direction: column
   justify-content: space-between
-  flex-wrap: wrap
+  border-right: 1px solid var(--mat-sys-outline-variant)
+
+.shell-nav-footer
+  padding: 1rem
+
+.shell-theme-switch
+  width: 100%
+  display: flex
+
+  mat-button-toggle
+    flex: 1 1 0
+
+.shell-nav-active
+  @include mat.list-overrides((list-item-label-text-color: var(--mat-sys-primary)))
+  font-weight: 600
+
+.shell-toolbar
+  position: sticky
+  top: 0
+  z-index: 1
   gap: 0.5rem
-  padding: 1rem 1.5rem
-  border-bottom: 1px solid #e2e2e2
 
 .shell-title
   margin: 0
   font-size: 1.25rem
   font-weight: 600
-
-.shell-nav a
-  color: inherit
-  text-decoration: none
-  font-weight: 500
-
-  &:hover
-    text-decoration: underline
 
 .shell-main
   padding: 1.5rem

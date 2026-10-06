@@ -1,4 +1,4 @@
-import { AirQualityReading, EnergyReading, MotionReading } from '../../../core/graphql/generated/schema-types';
+import { AirQualityReading, EnergyReading, MotionReading } from './graphql/generated/schema-types';
 
 // Derived from the schema's own generated types (not a specific query's result shape) so
 // a field rename in schema.graphql fails this compile instead of silently desyncing.

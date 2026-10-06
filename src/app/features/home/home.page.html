@@ -1,0 +1,19 @@
+<div class="home-layout">
+  <section class="home-intro">
+    <h2>D3S1T1 Metrics Dashboard</h2>
+    <p>
+      This app shows metric readings collected from rooms across the building (energy,
+      air quality, and motion) via the Gateway's GraphQL API.
+    </p>
+    <ul>
+      <li><strong>Home</strong> &mdash; this page: a quick intro plus the latest reading
+        for each room, at a glance.</li>
+      <li><strong>Graphs</strong> &mdash; charts and aggregations over time, once built.</li>
+      <li><strong>Table</strong> &mdash; the full readings history, paged, sorted, and
+        filterable by room and type.</li>
+    </ul>
+  </section>
+  <section class="home-latest">
+    <app-latest-values />
+  </section>
+</div>

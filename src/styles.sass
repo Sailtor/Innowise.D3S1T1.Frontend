@@ -1,1 +1,57 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat
+
+// mat.theme() gives us Material's structural tokens (typography, elevation, shape,
+// state-layer opacities). Its auto-derived M3 tonal palette reads as muted/rose-tinted
+// though (low-chroma neutrals blended from the red hue) - the overrides below replace
+// every color token with a genuinely neutral dark-grey/white and a saturated red instead
+// of Material's own tonal math, since that's the actual ask here.
+:root
+  color-scheme: light
+  @include mat.theme((color: (primary: mat.$red-palette), typography: Roboto, density: 0))
+
+  --mat-sys-primary: light-dark(#d50000, #ff5252)
+  --mat-sys-on-primary: light-dark(#ffffff, #3a0000)
+  --mat-sys-primary-container: light-dark(#ffd9d6, #7f0000)
+  --mat-sys-on-primary-container: light-dark(#410002, #ffd9d6)
+  --mat-sys-surface-tint: light-dark(#d50000, #ff5252)
+  --mat-sys-inverse-primary: light-dark(#ff8a80, #b71c1c)
+
+  --mat-sys-secondary: light-dark(#d50000, #ff5252)
+  --mat-sys-on-secondary: light-dark(#ffffff, #3a0000)
+  --mat-sys-secondary-container: light-dark(#ffd9d6, #7f0000)
+  --mat-sys-on-secondary-container: light-dark(#410002, #ffd9d6)
+
+  --mat-sys-tertiary: light-dark(#d50000, #ff5252)
+  --mat-sys-on-tertiary: light-dark(#ffffff, #3a0000)
+  --mat-sys-tertiary-container: light-dark(#ffd9d6, #7f0000)
+  --mat-sys-on-tertiary-container: light-dark(#410002, #ffd9d6)
+
+  --mat-sys-background: light-dark(#ffffff, #121212)
+  --mat-sys-surface: light-dark(#ffffff, #121212)
+  --mat-sys-surface-dim: light-dark(#e0e0e0, #121212)
+  --mat-sys-surface-bright: light-dark(#ffffff, #3a3a3a)
+  --mat-sys-surface-container-lowest: light-dark(#ffffff, #0a0a0a)
+  --mat-sys-surface-container-low: light-dark(#f7f7f7, #1d1d1d)
+  --mat-sys-surface-container: light-dark(#f1f1f1, #212121)
+  --mat-sys-surface-container-high: light-dark(#e9e9e9, #2b2b2b)
+  --mat-sys-surface-container-highest: light-dark(#e2e2e2, #363636)
+  --mat-sys-surface-variant: light-dark(#e9e9e9, #2b2b2b)
+
+  --mat-sys-on-background: light-dark(#1a1a1a, #ededed)
+  --mat-sys-on-surface: light-dark(#1a1a1a, #ededed)
+  --mat-sys-on-surface-variant: light-dark(#5c5c5c, #c2c2c2)
+
+  --mat-sys-outline: light-dark(#7a7a7a, #9e9e9e)
+  --mat-sys-outline-variant: light-dark(#d6d6d6, #454545)
+
+  --mat-sys-inverse-surface: light-dark(#2b2b2b, #e8e8e8)
+  --mat-sys-inverse-on-surface: light-dark(#f1f1f1, #2b2b2b)
+
+:root.dark-theme
+  color-scheme: dark
+
+body
+  margin: 0
+  background-color: var(--mat-sys-surface)
+  color: var(--mat-sys-on-surface)
+  font: var(--mat-sys-body-medium)
