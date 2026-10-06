@@ -1,21 +1,33 @@
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { ApolloTestingController, ApolloTestingModule } from 'apollo-angular/testing';
 import { GraphsPage } from './graphs.page';
+import { AggregationChartsDocument, AggregationChartsRoomsDocument } from '../../core/graphql/generated/graphql';
 
 describe('GraphsPage', () => {
+  let controller: ApolloTestingController;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GraphsPage],
+      imports: [GraphsPage, ApolloTestingModule],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
+
+    controller = TestBed.inject(ApolloTestingController);
   });
 
-  it('renders a placeholder', () => {
+  afterEach(() => {
+    controller.verify();
+  });
+
+  it('renders the aggregation charts panel', () => {
     const fixture = TestBed.createComponent(GraphsPage);
     fixture.detectChanges();
+
+    controller.expectOne(AggregationChartsRoomsDocument).flushData({ availableRooms: [] });
+    controller.expectOne(AggregationChartsDocument).flushData({ metricAggregation: [] });
+
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.graphs-placeholder')?.textContent).toContain(
-      'Charts land here',
-    );
+    expect(compiled.querySelector('app-aggregation-charts')).toBeTruthy();
   });
 });

@@ -1,0 +1,57 @@
+<section class="aggregation-charts">
+  <div class="controls d-flex flex-wrap gap-3 align-items-center">
+    <mat-form-field appearance="outline">
+      <mat-label>Field</mat-label>
+      <mat-select [value]="field()" (selectionChange)="onFieldChange($event.value)">
+        @for (f of fields; track f) {
+          <mat-option [value]="f">{{ fieldLabel(f) }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Range</mat-label>
+      <mat-select [value]="rangeDurationMs()" (selectionChange)="onRangePresetChange($event.value)">
+        @for (preset of rangePresets; track preset.label) {
+          <mat-option [value]="preset.durationMs">{{ preset.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Interval</mat-label>
+      <mat-select [value]="interval()" (selectionChange)="onIntervalChange($event.value)">
+        @for (i of intervals; track i) {
+          <mat-option [value]="i">{{ intervalLabel(i) }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Room</mat-label>
+      <mat-select [value]="roomFilter()" (selectionChange)="onRoomFilterChange($event.value)">
+        <mat-option [value]="null">All rooms</mat-option>
+        @for (room of rooms(); track room) {
+          <mat-option [value]="room">{{ room }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-slide-toggle (change)="onGroupByRoomChange($event)">Group by room</mat-slide-toggle>
+  </div>
+
+  @if (showInitialLoading()) {
+    <div class="chart-skeleton" aria-busy="true" aria-live="polite">Loading chart...</div>
+  } @else if (error()) {
+    <div class="error-banner" role="alert">Could not load the chart data. {{ error()?.message }}</div>
+  } @else if (!hasData()) {
+    <p class="empty-state">No readings in the selected range.</p>
+  } @else {
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    <div class="chart-container">
+      <canvas baseChart type="line" [data]="chartData()" [options]="chartOptions()"></canvas>
+    </div>
+  }
+</section>
