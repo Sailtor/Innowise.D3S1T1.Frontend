@@ -6,12 +6,14 @@ import { AggregationCharts } from './aggregation-charts';
 import { AggregationChartsDocument, DashboardFiltersRoomsDocument } from '../../../core/graphql/generated/graphql';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { DashboardFiltersService } from '../../../core/filters/dashboard-filters';
+import { ThemeService } from '../../../core/theme/theme';
 
 // `field`/`chartData` etc. are `protected` (template-only by design, matching
 // ReadingsTable's own test convention) - tests reach them through an instance cast.
 function asTestable(component: AggregationCharts) {
   return component as unknown as {
     chartData: () => ChartConfiguration<'line'>['data'];
+    chartOptions: () => ChartConfiguration<'line'>['options'];
     showInitialLoading: () => boolean;
     hasData: () => boolean;
     error: () => unknown;
@@ -28,6 +30,12 @@ describe('AggregationCharts', () => {
   let controller: ApolloTestingController;
 
   beforeEach(async () => {
+    // ThemeService toggles a global `dark-theme` class and reads/writes localStorage
+    // (see data/Frontend.md gotcha 19) - reset both so no other spec file's state
+    // leaks in, and so this file doesn't leak its own dark-mode test out either.
+    localStorage.removeItem('theme');
+    document.documentElement.classList.remove('dark-theme');
+
     await TestBed.configureTestingModule({
       imports: [AggregationCharts, ApolloTestingModule],
       providers: [provideZonelessChangeDetection()],
@@ -38,6 +46,8 @@ describe('AggregationCharts', () => {
 
   afterEach(() => {
     controller.verify();
+    localStorage.removeItem('theme');
+    document.documentElement.classList.remove('dark-theme');
   });
 
   it('builds one dataset when not grouped by room', async () => {
@@ -180,5 +190,25 @@ describe('AggregationCharts', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('canvas')).toBeTruthy();
     expect(compiled.querySelector('.error-banner[role="alert"]')?.textContent).toContain('refresh failed');
+  });
+
+  it('uses dark-mode axis/legend colors when the theme is dark', async () => {
+    const fixture = TestBed.createComponent(AggregationCharts);
+    fixture.detectChanges();
+
+    flushRooms(controller);
+    controller.expectOne(AggregationChartsDocument).flushData({ metricAggregation: [] });
+    await fixture.whenStable();
+
+    const component = asTestable(fixture.componentInstance);
+    const lightOptions = component.chartOptions();
+    expect((lightOptions?.scales?.['y'] as { ticks?: { color?: string } })?.ticks?.color).toBe('#5c5c5c');
+
+    TestBed.inject(ThemeService).set(true);
+    fixture.detectChanges();
+
+    const darkOptions = component.chartOptions();
+    expect((darkOptions?.scales?.['y'] as { ticks?: { color?: string } })?.ticks?.color).toBe('#c2c2c2');
+    expect((darkOptions?.scales?.['x'] as { grid?: { color?: string } })?.grid?.color).toBe('#454545');
   });
 });

@@ -25,6 +25,13 @@ import {
 } from '../../../core/graphql/generated/schema-types';
 import { AGGREGATION_FIELD_LABEL, toChartValue } from '../aggregation-display';
 import { DashboardFiltersService, presetToRange } from '../../../core/filters/dashboard-filters';
+import { ThemeService } from '../../../core/theme/theme';
+
+// Matches styles.sass's --mat-sys-on-surface-variant / --mat-sys-outline-variant
+// light-dark() pairs - Chart.js renders to a <canvas>, so it needs resolved color
+// strings, not CSS custom properties, and has no way to pick up `color-scheme` itself.
+const AXIS_TEXT_COLOR = { light: '#5c5c5c', dark: '#c2c2c2' };
+const GRID_LINE_COLOR = { light: '#d6d6d6', dark: '#454545' };
 
 type Bucket = AggregationChartsQuery['metricAggregation'][number];
 
@@ -72,6 +79,7 @@ const CHART_REGISTERABLES = [
 export class AggregationCharts {
   private readonly aggregationChartsGQL = inject(AggregationChartsGQL);
   private readonly filters = inject(DashboardFiltersService);
+  private readonly theme = inject(ThemeService);
 
   protected readonly fields = Object.values(AggregationField);
   protected readonly intervals = Object.values(TimeInterval);
@@ -159,14 +167,33 @@ export class AggregationCharts {
   // mode's single dataset is labeled with the field (so the legend alone reads fine),
   // but grouped mode labels each dataset with its room name instead - without this,
   // the unit disappeared entirely from a grouped chart (self-review finding).
-  protected readonly chartOptions = computed<ChartConfiguration<'line'>['options']>(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    spanGaps: false,
-    scales: {
-      y: { title: { display: true, text: AGGREGATION_FIELD_LABEL[this.field()] } },
-    },
-  }));
+  //
+  // Depends on theme.isDark() too: Chart.js renders to a <canvas>, so its default
+  // grey text/gridlines (tuned for a light background) don't react to the app's own
+  // dark-theme class the way everything else does - this recomputes explicit colors
+  // whenever the theme toggles, instead of leaving them unreadable against #121212.
+  protected readonly chartOptions = computed<ChartConfiguration<'line'>['options']>(() => {
+    const isDark = this.theme.isDark();
+    const textColor = isDark ? AXIS_TEXT_COLOR.dark : AXIS_TEXT_COLOR.light;
+    const gridColor = isDark ? GRID_LINE_COLOR.dark : GRID_LINE_COLOR.light;
+
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      spanGaps: false,
+      plugins: {
+        legend: { labels: { color: textColor } },
+      },
+      scales: {
+        x: { ticks: { color: textColor }, grid: { color: gridColor } },
+        y: {
+          title: { display: true, text: AGGREGATION_FIELD_LABEL[this.field()], color: textColor },
+          ticks: { color: textColor },
+          grid: { color: gridColor },
+        },
+      },
+    };
+  });
 
   protected fieldLabel(field: AggregationField): string {
     return AGGREGATION_FIELD_LABEL[field];

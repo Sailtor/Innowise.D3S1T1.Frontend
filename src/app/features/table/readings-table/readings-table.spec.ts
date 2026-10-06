@@ -1,9 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ApolloTestingController, ApolloTestingModule } from 'apollo-angular/testing';
+import { Sort } from '@angular/material/sort';
 import { ReadingsTable } from './readings-table';
 import { ReadingsTableDocument, DashboardFiltersRoomsDocument } from '../../../core/graphql/generated/graphql';
 import { DashboardFiltersService } from '../../../core/filters/dashboard-filters';
+import { MetricReadingType } from '../../../core/graphql/generated/schema-types';
 
 // Pagination/sort/filter handlers and derived signals are `protected` (template-only
 // by design) - tests reach them the conventional Angular way, through the component
@@ -16,7 +18,14 @@ function asTestable(component: ReadingsTable) {
     hasData: () => boolean;
     error: () => unknown;
     onPage: (event: { pageIndex: number; pageSize: number; length: number }) => void;
+    onSort: (sort: Sort) => void;
   };
+}
+
+function flushEmptyPage(controller: ApolloTestingController): void {
+  controller
+    .expectOne(ReadingsTableDocument)
+    .flushData({ metricReadings: { totalCount: 0, pageInfo: { hasNextPage: false, hasPreviousPage: false }, items: [] } });
 }
 
 function flushRooms(controller: ApolloTestingController, rooms: string[] = []): void {
@@ -148,6 +157,79 @@ describe('ReadingsTable', () => {
     await fixture.whenStable();
 
     expect(component.rows().length).toBe(0);
+  });
+
+  it('refetches with the type filter when the shared type filter changes', async () => {
+    const fixture = TestBed.createComponent(ReadingsTable);
+    fixture.detectChanges();
+
+    flushRooms(controller);
+    flushEmptyPage(controller);
+    await fixture.whenStable();
+
+    TestBed.inject(DashboardFiltersService).setType(MetricReadingType.Energy);
+    await fixture.whenStable();
+
+    const request = controller.expectOne(ReadingsTableDocument);
+    expect(request.operation.variables['where'].type).toEqual({ eq: 'ENERGY' });
+    request.flushData({
+      metricReadings: { totalCount: 0, pageInfo: { hasNextPage: false, hasPreviousPage: false }, items: [] },
+    });
+    await fixture.whenStable();
+  });
+
+  it('requests sorted results and resets to page 1 when a sort is applied', async () => {
+    const fixture = TestBed.createComponent(ReadingsTable);
+    fixture.detectChanges();
+
+    flushRooms(controller);
+    controller.expectOne(ReadingsTableDocument).flushData({
+      metricReadings: { totalCount: 50, pageInfo: { hasNextPage: true, hasPreviousPage: false }, items: [] },
+    });
+    await fixture.whenStable();
+
+    // Move off page 1 first, so sorting resetting it back to page 1 is a real assertion.
+    asTestable(fixture.componentInstance).onPage({ pageIndex: 1, pageSize: 20, length: 50 });
+    await fixture.whenStable();
+    controller.expectOne(ReadingsTableDocument).flushData({
+      metricReadings: { totalCount: 50, pageInfo: { hasNextPage: true, hasPreviousPage: true }, items: [] },
+    });
+    await fixture.whenStable();
+
+    asTestable(fixture.componentInstance).onSort({ active: 'receivedAt', direction: 'desc' });
+    await fixture.whenStable();
+
+    const request = controller.expectOne(ReadingsTableDocument);
+    expect(request.operation.variables['order']).toEqual([{ receivedAt: 'DESC' }]);
+    expect(request.operation.variables['skip']).toBe(0);
+    request.flushData({
+      metricReadings: { totalCount: 50, pageInfo: { hasNextPage: true, hasPreviousPage: false }, items: [] },
+    });
+    await fixture.whenStable();
+  });
+
+  it('clears the sort when the sort direction cycles back to none', async () => {
+    const fixture = TestBed.createComponent(ReadingsTable);
+    fixture.detectChanges();
+
+    flushRooms(controller);
+    flushEmptyPage(controller);
+    await fixture.whenStable();
+
+    asTestable(fixture.componentInstance).onSort({ active: 'room', direction: 'asc' });
+    await fixture.whenStable();
+    flushEmptyPage(controller);
+    await fixture.whenStable();
+
+    asTestable(fixture.componentInstance).onSort({ active: 'room', direction: '' });
+    await fixture.whenStable();
+
+    const request = controller.expectOne(ReadingsTableDocument);
+    expect(request.operation.variables['order']).toEqual([]);
+    request.flushData({
+      metricReadings: { totalCount: 0, pageInfo: { hasNextPage: false, hasPreviousPage: false }, items: [] },
+    });
+    await fixture.whenStable();
   });
 
   it('keeps previously loaded rows visible when a later refetch errors', async () => {
