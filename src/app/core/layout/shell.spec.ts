@@ -6,7 +6,10 @@ import { Subject } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Shell } from './shell';
 import { MetricsHubService } from '../signalr/metrics-hub';
-import { ALERT_SNACKBAR_PANEL_CLASS, ThresholdAlertNotification } from '../signalr/metrics-hub.types';
+import {
+  ALERT_SNACKBAR_PANEL_CLASS,
+  ThresholdAlertNotification,
+} from '../signalr/metrics-hub.types';
 import { DashboardFiltersRoomsDocument } from '../graphql/generated/graphql';
 
 describe('Shell', () => {
