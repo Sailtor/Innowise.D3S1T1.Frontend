@@ -2,13 +2,13 @@ export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
   /** The `DateTime` scalar type represents a date and time with time zone offset information. */
-  DateTime: { input: string; output: string; }
+  DateTime: { input: string; output: string };
 };
 
 export enum AggregationField {
@@ -16,7 +16,7 @@ export enum AggregationField {
   EnergyAmount = 'ENERGY_AMOUNT',
   Humidity = 'HUMIDITY',
   MotionDetected = 'MOTION_DETECTED',
-  Pm25 = 'PM25'
+  Pm25 = 'PM25',
 }
 
 /** Air quality recorded for a room. */
@@ -131,7 +131,7 @@ export type MetricReadingSortInput = {
 export enum MetricReadingType {
   AirQuality = 'AIR_QUALITY',
   Energy = 'ENERGY',
-  Motion = 'MOTION'
+  Motion = 'MOTION',
 }
 
 export type MetricReadingTypeOperationFilterInput = {
@@ -186,17 +186,14 @@ export type Query = {
   rooms: Array<RoomSummary>;
 };
 
-
 export type QueryLatestReadingsArgs = {
   rooms?: InputMaybe<Array<Scalars['String']['input']>>;
   types?: InputMaybe<Array<MetricReadingType>>;
 };
 
-
 export type QueryMetricAggregationArgs = {
   input: MetricAggregationInput;
 };
-
 
 export type QueryMetricReadingsArgs = {
   order?: InputMaybe<Array<MetricReadingSortInput>>;
@@ -215,7 +212,7 @@ export type RoomSummary = {
 
 export enum SortEnumType {
   Asc = 'ASC',
-  Desc = 'DESC'
+  Desc = 'DESC',
 }
 
 export type StringOperationFilterInput = {
@@ -236,5 +233,5 @@ export type StringOperationFilterInput = {
 export enum TimeInterval {
   Day = 'DAY',
   Hour = 'HOUR',
-  Minute = 'MINUTE'
+  Minute = 'MINUTE',
 }

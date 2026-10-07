@@ -3,7 +3,10 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { ApolloTestingController, ApolloTestingModule } from 'apollo-angular/testing';
 import { ChartConfiguration } from 'chart.js';
 import { AggregationCharts } from './aggregation-charts';
-import { AggregationChartsDocument, DashboardFiltersRoomsDocument } from '../../../core/graphql/generated/graphql';
+import {
+  AggregationChartsDocument,
+  DashboardFiltersRoomsDocument,
+} from '../../../core/graphql/generated/graphql';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { DashboardFiltersService } from '../../../core/filters/dashboard-filters';
 import { ThemeService } from '../../../core/theme/theme';
@@ -57,8 +60,16 @@ describe('AggregationCharts', () => {
     flushRooms(controller, ['Kitchen']);
     controller.expectOne(AggregationChartsDocument).flushData({
       metricAggregation: [
-        { room: null, bucketStart: '2026-01-01T00:00:00.000Z', stats: { count: 2, min: 1, max: 3, average: 2, sum: 4 } },
-        { room: null, bucketStart: '2026-01-01T01:00:00.000Z', stats: { count: 2, min: 2, max: 4, average: 3, sum: 6 } },
+        {
+          room: null,
+          bucketStart: '2026-01-01T00:00:00.000Z',
+          stats: { count: 2, min: 1, max: 3, average: 2, sum: 4 },
+        },
+        {
+          room: null,
+          bucketStart: '2026-01-01T01:00:00.000Z',
+          stats: { count: 2, min: 2, max: 4, average: 3, sum: 6 },
+        },
       ],
     });
     await fixture.whenStable();
@@ -79,15 +90,25 @@ describe('AggregationCharts', () => {
     controller.expectOne(AggregationChartsDocument).flushData({ metricAggregation: [] });
     await fixture.whenStable();
 
-    asTestable(fixture.componentInstance).onGroupByRoomChange({ checked: true } as MatSlideToggleChange);
+    asTestable(fixture.componentInstance).onGroupByRoomChange({
+      checked: true,
+    } as MatSlideToggleChange);
     await fixture.whenStable();
 
     const request = controller.expectOne(AggregationChartsDocument);
     expect(request.operation.variables['input'].groupByRoom).toBeTrue();
     request.flushData({
       metricAggregation: [
-        { room: 'Kitchen', bucketStart: '2026-01-01T00:00:00.000Z', stats: { count: 1, min: 1, max: 1, average: 1, sum: 1 } },
-        { room: 'Lobby', bucketStart: '2026-01-01T00:00:00.000Z', stats: { count: 1, min: 2, max: 2, average: 2, sum: 2 } },
+        {
+          room: 'Kitchen',
+          bucketStart: '2026-01-01T00:00:00.000Z',
+          stats: { count: 1, min: 1, max: 1, average: 1, sum: 1 },
+        },
+        {
+          room: 'Lobby',
+          bucketStart: '2026-01-01T00:00:00.000Z',
+          stats: { count: 1, min: 2, max: 2, average: 2, sum: 2 },
+        },
       ],
     });
     await fixture.whenStable();
@@ -170,7 +191,11 @@ describe('AggregationCharts', () => {
     flushRooms(controller);
     controller.expectOne(AggregationChartsDocument).flushData({
       metricAggregation: [
-        { room: null, bucketStart: '2026-01-01T00:00:00.000Z', stats: { count: 1, min: 1, max: 1, average: 1, sum: 1 } },
+        {
+          room: null,
+          bucketStart: '2026-01-01T00:00:00.000Z',
+          stats: { count: 1, min: 1, max: 1, average: 1, sum: 1 },
+        },
       ],
     });
     await fixture.whenStable();
@@ -189,7 +214,9 @@ describe('AggregationCharts', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('canvas')).toBeTruthy();
-    expect(compiled.querySelector('.error-banner[role="alert"]')?.textContent).toContain('refresh failed');
+    expect(compiled.querySelector('.error-banner[role="alert"]')?.textContent).toContain(
+      'refresh failed',
+    );
   });
 
   it('uses dark-mode axis/legend colors when the theme is dark', async () => {
@@ -202,13 +229,19 @@ describe('AggregationCharts', () => {
 
     const component = asTestable(fixture.componentInstance);
     const lightOptions = component.chartOptions();
-    expect((lightOptions?.scales?.['y'] as { ticks?: { color?: string } })?.ticks?.color).toBe('#5c5c5c');
+    expect((lightOptions?.scales?.['y'] as { ticks?: { color?: string } })?.ticks?.color).toBe(
+      '#5c5c5c',
+    );
 
     TestBed.inject(ThemeService).set(true);
     fixture.detectChanges();
 
     const darkOptions = component.chartOptions();
-    expect((darkOptions?.scales?.['y'] as { ticks?: { color?: string } })?.ticks?.color).toBe('#c2c2c2');
-    expect((darkOptions?.scales?.['x'] as { grid?: { color?: string } })?.grid?.color).toBe('#454545');
+    expect((darkOptions?.scales?.['y'] as { ticks?: { color?: string } })?.ticks?.color).toBe(
+      '#c2c2c2',
+    );
+    expect((darkOptions?.scales?.['x'] as { grid?: { color?: string } })?.grid?.color).toBe(
+      '#454545',
+    );
   });
 });

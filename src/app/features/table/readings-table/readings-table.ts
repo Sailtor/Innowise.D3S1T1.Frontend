@@ -14,7 +14,9 @@ import {
 import { displayValue, typeLabel } from '../../../core/reading-display';
 import { DashboardFiltersService, presetToRange } from '../../../core/filters/dashboard-filters';
 
-type ReadingRow = NonNullable<NonNullable<NonNullable<ReadingsTableQuery['metricReadings']>['items']>[number]>;
+type ReadingRow = NonNullable<
+  NonNullable<NonNullable<ReadingsTableQuery['metricReadings']>['items']>[number]
+>;
 
 const PAGE_SIZE = 20;
 const SORTABLE_FIELDS = ['room', 'receivedAt'] as const;
@@ -66,8 +68,10 @@ export class ReadingsTable {
 
   private readonly result = toSignal(
     toObservable(this.variables).pipe(
-      switchMap((vars) =>
-        this.readingsTableGQL.watch({ variables: vars, notifyOnNetworkStatusChange: true }).valueChanges,
+      switchMap(
+        (vars) =>
+          this.readingsTableGQL.watch({ variables: vars, notifyOnNetworkStatusChange: true })
+            .valueChanges,
       ),
     ),
     { initialValue: undefined },

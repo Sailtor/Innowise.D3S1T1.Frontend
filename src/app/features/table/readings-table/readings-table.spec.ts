@@ -3,7 +3,10 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { ApolloTestingController, ApolloTestingModule } from 'apollo-angular/testing';
 import { Sort } from '@angular/material/sort';
 import { ReadingsTable } from './readings-table';
-import { ReadingsTableDocument, DashboardFiltersRoomsDocument } from '../../../core/graphql/generated/graphql';
+import {
+  ReadingsTableDocument,
+  DashboardFiltersRoomsDocument,
+} from '../../../core/graphql/generated/graphql';
 import { DashboardFiltersService } from '../../../core/filters/dashboard-filters';
 import { MetricReadingType } from '../../../core/graphql/generated/schema-types';
 
@@ -23,9 +26,13 @@ function asTestable(component: ReadingsTable) {
 }
 
 function flushEmptyPage(controller: ApolloTestingController): void {
-  controller
-    .expectOne(ReadingsTableDocument)
-    .flushData({ metricReadings: { totalCount: 0, pageInfo: { hasNextPage: false, hasPreviousPage: false }, items: [] } });
+  controller.expectOne(ReadingsTableDocument).flushData({
+    metricReadings: {
+      totalCount: 0,
+      pageInfo: { hasNextPage: false, hasPreviousPage: false },
+      items: [],
+    },
+  });
 }
 
 function flushRooms(controller: ApolloTestingController, rooms: string[] = []): void {
@@ -80,12 +87,16 @@ describe('ReadingsTable', () => {
     const renderedRows = (fixture.nativeElement as HTMLElement).querySelectorAll('tr.reading-row');
     expect(renderedRows.length).toBe(1);
 
-    const headerCells = (fixture.nativeElement as HTMLElement).querySelectorAll('th[mat-header-cell]');
+    const headerCells = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      'th[mat-header-cell]',
+    );
     expect(headerCells.length).toBe(4);
     headerCells.forEach((cell) => expect(cell.getAttribute('scope')).toBe('col'));
 
     // A narrow viewport must scroll this wrapper, not the whole page (D-6).
-    const scrollWrapper = (fixture.nativeElement as HTMLElement).querySelector('.table-scroll table.readings-mat-table');
+    const scrollWrapper = (fixture.nativeElement as HTMLElement).querySelector(
+      '.table-scroll table.readings-mat-table',
+    );
     expect(scrollWrapper).toBeTruthy();
   });
 
@@ -95,7 +106,11 @@ describe('ReadingsTable', () => {
 
     flushRooms(controller);
     controller.expectOne(ReadingsTableDocument).flushData({
-      metricReadings: { totalCount: 50, pageInfo: { hasNextPage: true, hasPreviousPage: false }, items: [] },
+      metricReadings: {
+        totalCount: 50,
+        pageInfo: { hasNextPage: true, hasPreviousPage: false },
+        items: [],
+      },
     });
     await fixture.whenStable();
 
@@ -105,7 +120,11 @@ describe('ReadingsTable', () => {
     const nextRequest = controller.expectOne(ReadingsTableDocument);
     expect(nextRequest.operation.variables['skip']).toBe(20);
     nextRequest.flushData({
-      metricReadings: { totalCount: 50, pageInfo: { hasNextPage: true, hasPreviousPage: true }, items: [] },
+      metricReadings: {
+        totalCount: 50,
+        pageInfo: { hasNextPage: true, hasPreviousPage: true },
+        items: [],
+      },
     });
     await fixture.whenStable();
   });
@@ -152,7 +171,11 @@ describe('ReadingsTable', () => {
       }),
     );
     filteredRequest.flushData({
-      metricReadings: { totalCount: 0, pageInfo: { hasNextPage: false, hasPreviousPage: false }, items: [] },
+      metricReadings: {
+        totalCount: 0,
+        pageInfo: { hasNextPage: false, hasPreviousPage: false },
+        items: [],
+      },
     });
     await fixture.whenStable();
 
@@ -173,7 +196,11 @@ describe('ReadingsTable', () => {
     const request = controller.expectOne(ReadingsTableDocument);
     expect(request.operation.variables['where'].type).toEqual({ eq: 'ENERGY' });
     request.flushData({
-      metricReadings: { totalCount: 0, pageInfo: { hasNextPage: false, hasPreviousPage: false }, items: [] },
+      metricReadings: {
+        totalCount: 0,
+        pageInfo: { hasNextPage: false, hasPreviousPage: false },
+        items: [],
+      },
     });
     await fixture.whenStable();
   });
@@ -184,7 +211,11 @@ describe('ReadingsTable', () => {
 
     flushRooms(controller);
     controller.expectOne(ReadingsTableDocument).flushData({
-      metricReadings: { totalCount: 50, pageInfo: { hasNextPage: true, hasPreviousPage: false }, items: [] },
+      metricReadings: {
+        totalCount: 50,
+        pageInfo: { hasNextPage: true, hasPreviousPage: false },
+        items: [],
+      },
     });
     await fixture.whenStable();
 
@@ -192,7 +223,11 @@ describe('ReadingsTable', () => {
     asTestable(fixture.componentInstance).onPage({ pageIndex: 1, pageSize: 20, length: 50 });
     await fixture.whenStable();
     controller.expectOne(ReadingsTableDocument).flushData({
-      metricReadings: { totalCount: 50, pageInfo: { hasNextPage: true, hasPreviousPage: true }, items: [] },
+      metricReadings: {
+        totalCount: 50,
+        pageInfo: { hasNextPage: true, hasPreviousPage: true },
+        items: [],
+      },
     });
     await fixture.whenStable();
 
@@ -203,7 +238,11 @@ describe('ReadingsTable', () => {
     expect(request.operation.variables['order']).toEqual([{ receivedAt: 'DESC' }]);
     expect(request.operation.variables['skip']).toBe(0);
     request.flushData({
-      metricReadings: { totalCount: 50, pageInfo: { hasNextPage: true, hasPreviousPage: false }, items: [] },
+      metricReadings: {
+        totalCount: 50,
+        pageInfo: { hasNextPage: true, hasPreviousPage: false },
+        items: [],
+      },
     });
     await fixture.whenStable();
   });
@@ -227,7 +266,11 @@ describe('ReadingsTable', () => {
     const request = controller.expectOne(ReadingsTableDocument);
     expect(request.operation.variables['order']).toEqual([]);
     request.flushData({
-      metricReadings: { totalCount: 0, pageInfo: { hasNextPage: false, hasPreviousPage: false }, items: [] },
+      metricReadings: {
+        totalCount: 0,
+        pageInfo: { hasNextPage: false, hasPreviousPage: false },
+        items: [],
+      },
     });
     await fixture.whenStable();
   });

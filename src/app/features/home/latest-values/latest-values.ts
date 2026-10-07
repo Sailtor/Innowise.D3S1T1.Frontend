@@ -28,7 +28,9 @@ export class LatestValues {
     return current?.dataState === 'complete' ? current.data : undefined;
   });
 
-  protected readonly readings = computed<ReadingRow[]>(() => this.completeData()?.latestReadings ?? []);
+  protected readonly readings = computed<ReadingRow[]>(
+    () => this.completeData()?.latestReadings ?? [],
+  );
   protected readonly rooms = computed(() => this.completeData()?.rooms ?? []);
 
   protected typeLabel(reading: ReadingRow): string {
