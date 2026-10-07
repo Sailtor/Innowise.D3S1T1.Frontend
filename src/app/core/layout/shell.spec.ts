@@ -1,7 +1,10 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Shell } from './shell';
+import { MetricsHubService } from '../signalr/metrics-hub';
+import { ALERT_SNACKBAR_PANEL_CLASS } from '../signalr/metrics-hub.types';
 
 describe('Shell', () => {
   beforeEach(async () => {
@@ -86,5 +89,31 @@ describe('Shell', () => {
     lightButton.click();
     fixture.detectChanges();
     expect(document.documentElement.classList.contains('dark-theme')).toBeFalse();
+  });
+
+  it('opens a snackbar with the formatted message when the hub pushes a threshold alert', () => {
+    const fixture = TestBed.createComponent(Shell);
+    const snackBar = TestBed.inject(MatSnackBar);
+    const openSpy = spyOn(snackBar, 'open');
+    fixture.detectChanges();
+
+    const metricsHub = TestBed.inject(MetricsHubService);
+    metricsHub.alertReceived$.next({
+      room: 'kitchen',
+      readingType: 'AirQuality',
+      rule: 'AirQuality.Co2.ExceedsThreshold',
+      value: 1200,
+      threshold: 1000,
+      ingestedAtUtc: '2026-01-01T00:00:00Z',
+    });
+
+    expect(openSpy).toHaveBeenCalledWith(
+      'kitchen: CO2 1200 ppm exceeds threshold 1000',
+      'Dismiss',
+      {
+        duration: 6000,
+        panelClass: ALERT_SNACKBAR_PANEL_CLASS,
+      },
+    );
   });
 });

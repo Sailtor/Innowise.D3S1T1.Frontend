@@ -84,6 +84,32 @@ describe('MetricsHubService', () => {
     expect(fakeConnection.invoke).not.toHaveBeenCalled();
   });
 
+  it('emits on alertReceived$ when the hub pushes ReceiveAlert', async () => {
+    const service = new MetricsHubService();
+    await service.joinRoom('kitchen');
+
+    const onReceiveAlert = fakeConnection.on.calls
+      .all()
+      .map((call) => call.args)
+      .find(([event]) => event === 'ReceiveAlert')?.[1];
+    expect(onReceiveAlert).toBeDefined();
+
+    const alerts: unknown[] = [];
+    service.alertReceived$.subscribe((alert) => alerts.push(alert));
+
+    const alert = {
+      room: 'kitchen',
+      readingType: 'AirQuality',
+      rule: 'AirQuality.Co2.ExceedsThreshold',
+      value: 1200,
+      threshold: 1000,
+      ingestedAtUtc: '2026-01-01T00:00:00Z',
+    };
+    onReceiveAlert(alert);
+
+    expect(alerts).toEqual([alert]);
+  });
+
   it('warns but keeps rejoining the remaining rooms when one rejoin fails after reconnect', async () => {
     const service = new MetricsHubService();
     await service.joinRoom('kitchen');
