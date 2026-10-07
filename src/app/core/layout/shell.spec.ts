@@ -107,9 +107,13 @@ describe('Shell', () => {
       ingestedAtUtc: '2026-01-01T00:00:00Z',
     });
 
-    expect(openSpy).toHaveBeenCalledWith('kitchen: CO2 1200 ppm exceeds threshold 1000', 'Dismiss', {
-      duration: 6000,
-      panelClass: ALERT_SNACKBAR_PANEL_CLASS,
-    });
+    expect(openSpy).toHaveBeenCalledWith(
+      'kitchen: CO2 1200 ppm exceeds threshold 1000',
+      'Dismiss',
+      {
+        duration: 6000,
+        panelClass: ALERT_SNACKBAR_PANEL_CLASS,
+      },
+    );
   });
 });
