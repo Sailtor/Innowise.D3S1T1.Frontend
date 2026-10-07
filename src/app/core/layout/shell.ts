@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -10,6 +10,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatButtonToggleModule, MatButtonToggleChange } from '@angular/material/button-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ThemeService } from '../theme/theme';
+import { DashboardFiltersService } from '../filters/dashboard-filters';
 import { MetricsHubService } from '../signalr/metrics-hub';
 import { ALERT_SNACKBAR_PANEL_CLASS, formatAlertMessage } from '../signalr/metrics-hub.types';
 
@@ -39,16 +40,28 @@ export class Shell {
 
   private readonly metricsHub = inject(MetricsHubService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dashboardFilters = inject(DashboardFiltersService);
+  private readonly joinedByShell = new Set<string>();
 
   constructor() {
-    // Rooms only arrive here via whatever page already joined them on MetricsHubService
-    // (today, only Home's LatestValues) - this component never calls joinRoom itself, so an
-    // alert only surfaces for a room the user has had visible at least once this session.
     this.metricsHub.alertReceived$.pipe(takeUntilDestroyed()).subscribe((alert) => {
       this.snackBar.open(formatAlertMessage(alert), 'Dismiss', {
         duration: 6000,
         panelClass: ALERT_SNACKBAR_PANEL_CLASS,
       });
+    });
+
+    // Permanent, app-lifetime interest in every known room so alert toasts aren't
+    // limited to rooms a page has rendered this session (data/Frontend.md §19). Shell
+    // never leaveRoom()s - MetricsHubService's refcounted join/leave means this doesn't
+    // fight with a page component's own joinRoom/leaveRoom for the same room.
+    effect(() => {
+      for (const room of this.dashboardFilters.roomOptions()) {
+        if (!this.joinedByShell.has(room)) {
+          this.joinedByShell.add(room);
+          void this.metricsHub.joinRoom(room);
+        }
+      }
     });
   }
 

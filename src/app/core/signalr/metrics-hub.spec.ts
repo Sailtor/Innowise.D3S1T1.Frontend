@@ -110,6 +110,53 @@ describe('MetricsHubService', () => {
     expect(alerts).toEqual([alert]);
   });
 
+  it('invokes JoinRoom only once when two independent callers join the same room', async () => {
+    const service = new MetricsHubService();
+
+    await service.joinRoom('kitchen');
+    await service.joinRoom('kitchen');
+
+    const joinKitchenCalls = fakeConnection.invoke.calls
+      .allArgs()
+      .filter(([method, room]) => method === 'JoinRoom' && room === 'kitchen');
+    expect(joinKitchenCalls.length).toBe(1);
+  });
+
+  it('invokes JoinRoom only once when two callers join the same room without awaiting each other', async () => {
+    // Shell's effect() and a page component's effect() both call joinRoom() via `void`,
+    // never awaiting the result - this reproduces that interleaving instead of the
+    // sequential-await shape the previous test uses.
+    const service = new MetricsHubService();
+
+    const first = service.joinRoom('kitchen');
+    const second = service.joinRoom('kitchen');
+    await Promise.all([first, second]);
+
+    const joinKitchenCalls = fakeConnection.invoke.calls
+      .allArgs()
+      .filter(([method, room]) => method === 'JoinRoom' && room === 'kitchen');
+    expect(joinKitchenCalls.length).toBe(1);
+
+    // Both callers' interest was counted - leaving once must not release the room.
+    await service.leaveRoom('kitchen');
+    expect(fakeConnection.invoke).not.toHaveBeenCalledWith('LeaveRoom', 'kitchen');
+  });
+
+  it('keeps a room joined until every caller has left it', async () => {
+    const service = new MetricsHubService();
+    await service.joinRoom('kitchen');
+    await service.joinRoom('kitchen');
+
+    await service.leaveRoom('kitchen');
+    expect(fakeConnection.invoke).not.toHaveBeenCalledWith('LeaveRoom', 'kitchen');
+
+    await service.leaveRoom('kitchen');
+    const leaveKitchenCalls = fakeConnection.invoke.calls
+      .allArgs()
+      .filter(([method, room]) => method === 'LeaveRoom' && room === 'kitchen');
+    expect(leaveKitchenCalls.length).toBe(1);
+  });
+
   it('warns but keeps rejoining the remaining rooms when one rejoin fails after reconnect', async () => {
     const service = new MetricsHubService();
     await service.joinRoom('kitchen');
