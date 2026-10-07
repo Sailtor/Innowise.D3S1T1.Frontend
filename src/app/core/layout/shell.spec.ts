@@ -1,33 +1,63 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
+import { ApolloTestingController, ApolloTestingModule } from 'apollo-angular/testing';
+import { Subject } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Shell } from './shell';
 import { MetricsHubService } from '../signalr/metrics-hub';
-import { ALERT_SNACKBAR_PANEL_CLASS } from '../signalr/metrics-hub.types';
+import {
+  ALERT_SNACKBAR_PANEL_CLASS,
+  ThresholdAlertNotification,
+} from '../signalr/metrics-hub.types';
+import { DashboardFiltersRoomsDocument } from '../graphql/generated/graphql';
 
 describe('Shell', () => {
+  let controller: ApolloTestingController;
+  let fakeHub: {
+    joinRoom: jasmine.Spy;
+    leaveRoom: jasmine.Spy;
+    alertReceived$: Subject<ThresholdAlertNotification>;
+  };
+
   beforeEach(async () => {
     localStorage.removeItem('theme');
     document.documentElement.classList.remove('dark-theme');
+    fakeHub = {
+      joinRoom: jasmine.createSpy('joinRoom').and.resolveTo(undefined),
+      leaveRoom: jasmine.createSpy('leaveRoom').and.resolveTo(undefined),
+      alertReceived$: new Subject<ThresholdAlertNotification>(),
+    };
     await TestBed.configureTestingModule({
-      imports: [Shell],
-      providers: [provideZonelessChangeDetection(), provideRouter([])],
+      imports: [Shell, ApolloTestingModule],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideRouter([]),
+        { provide: MetricsHubService, useValue: fakeHub },
+      ],
     }).compileComponents();
+    controller = TestBed.inject(ApolloTestingController);
   });
 
   afterEach(() => {
     localStorage.removeItem('theme');
     document.documentElement.classList.remove('dark-theme');
+    controller.verify();
   });
+
+  function flushRooms(rooms: string[]): void {
+    controller.expectOne(DashboardFiltersRoomsDocument).flushData({ availableRooms: rooms });
+  }
 
   it('should create the shell', () => {
     const fixture = TestBed.createComponent(Shell);
+    flushRooms([]);
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('renders a skip link targeting a focusable main content region', () => {
     const fixture = TestBed.createComponent(Shell);
+    flushRooms([]);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
@@ -44,6 +74,7 @@ describe('Shell', () => {
 
   it('moves keyboard focus to the main content when the skip link is activated', () => {
     const fixture = TestBed.createComponent(Shell);
+    flushRooms([]);
     // Focus/activeElement only behaves realistically for nodes attached to the live
     // document - fixtures aren't attached by default.
     document.body.appendChild(fixture.nativeElement);
@@ -65,6 +96,7 @@ describe('Shell', () => {
 
   it('renders the three nav entries', () => {
     const fixture = TestBed.createComponent(Shell);
+    flushRooms([]);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     const links = Array.from(compiled.querySelectorAll('a[routerLink]')).map((a) =>
@@ -75,6 +107,7 @@ describe('Shell', () => {
 
   it('clicking Dark/Light in the theme switch flips the dark-theme class on <html>', () => {
     const fixture = TestBed.createComponent(Shell);
+    flushRooms([]);
     fixture.detectChanges();
 
     expect(document.documentElement.classList.contains('dark-theme')).toBeFalse();
@@ -93,12 +126,12 @@ describe('Shell', () => {
 
   it('opens a snackbar with the formatted message when the hub pushes a threshold alert', () => {
     const fixture = TestBed.createComponent(Shell);
+    flushRooms([]);
     const snackBar = TestBed.inject(MatSnackBar);
     const openSpy = spyOn(snackBar, 'open');
     fixture.detectChanges();
 
-    const metricsHub = TestBed.inject(MetricsHubService);
-    metricsHub.alertReceived$.next({
+    fakeHub.alertReceived$.next({
       room: 'kitchen',
       readingType: 'AirQuality',
       rule: 'AirQuality.Co2.ExceedsThreshold',
@@ -115,5 +148,29 @@ describe('Shell', () => {
         panelClass: ALERT_SNACKBAR_PANEL_CLASS,
       },
     );
+  });
+
+  it('joins every room from availableRooms', () => {
+    const fixture = TestBed.createComponent(Shell);
+    fixture.detectChanges();
+
+    flushRooms(['kitchen', 'hallway']);
+    fixture.detectChanges();
+
+    expect(fakeHub.joinRoom).toHaveBeenCalledWith('kitchen');
+    expect(fakeHub.joinRoom).toHaveBeenCalledWith('hallway');
+    expect(fakeHub.joinRoom).toHaveBeenCalledTimes(2);
+  });
+
+  it('never leaves a room it joined', () => {
+    const fixture = TestBed.createComponent(Shell);
+    fixture.detectChanges();
+
+    flushRooms(['kitchen', 'hallway']);
+    fixture.detectChanges();
+
+    expect(fakeHub.joinRoom).toHaveBeenCalledWith('kitchen');
+    expect(fakeHub.joinRoom).toHaveBeenCalledWith('hallway');
+    expect(fakeHub.leaveRoom).not.toHaveBeenCalled();
   });
 });

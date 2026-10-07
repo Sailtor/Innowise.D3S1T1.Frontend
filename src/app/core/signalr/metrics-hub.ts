@@ -16,7 +16,12 @@ import { ReadingNotification, ThresholdAlertNotification } from './metrics-hub.t
 // service level instead of a lazy route's component level).
 @Injectable({ providedIn: 'root' })
 export class MetricsHubService {
-  private readonly joinedRooms = new Set<string>();
+  // Refcounted rather than a plain Set - Shell holds a permanent interest in every
+  // known room (app-wide alert coverage) alongside whatever a page component joins and
+  // leaves on its own mount/unmount, so one caller's leaveRoom must not undo another
+  // caller's independent interest in the same room. The hub itself is only told
+  // JoinRoom/LeaveRoom on a 0->1 / 1->0 transition.
+  private readonly roomRefCounts = new Map<string, number>();
   private connection?: HubConnection;
   private connectionStart?: Promise<void>;
 
@@ -24,12 +29,22 @@ export class MetricsHubService {
   readonly alertReceived$ = new Subject<ThresholdAlertNotification>();
 
   async joinRoom(room: string): Promise<void> {
+    // The refcount is bumped synchronously, before the first `await`, so two callers
+    // firing joinRoom() for the same room without awaiting each other (Shell's and a
+    // page's own effect() both do this) can never both observe count 0 and both trigger
+    // a hub invoke - only the caller that actually transitions 0->1 does.
+    const previousCount = this.roomRefCounts.get(room) ?? 0;
+    this.roomRefCounts.set(room, previousCount + 1);
+    if (previousCount > 0) {
+      return;
+    }
+
     await this.ensureConnected();
     try {
       await this.connection!.invoke('JoinRoom', room);
-      this.joinedRooms.add(room);
     } catch (error) {
       console.warn(`MetricsHubService: failed to join room "${room}"`, error);
+      this.roomRefCounts.delete(room);
     }
   }
 
@@ -37,12 +52,21 @@ export class MetricsHubService {
     if (!this.connection) {
       return;
     }
+    const previousCount = this.roomRefCounts.get(room) ?? 0;
+    if (previousCount === 0) {
+      return;
+    }
+    if (previousCount > 1) {
+      this.roomRefCounts.set(room, previousCount - 1);
+      return;
+    }
+
     try {
       await this.connection.invoke('LeaveRoom', room);
     } catch (error) {
       console.warn(`MetricsHubService: failed to leave room "${room}"`, error);
     } finally {
-      this.joinedRooms.delete(room);
+      this.roomRefCounts.delete(room);
     }
   }
 
@@ -71,7 +95,7 @@ export class MetricsHubService {
     );
 
     this.connection.onreconnected(async () => {
-      for (const room of this.joinedRooms) {
+      for (const room of this.roomRefCounts.keys()) {
         try {
           await this.connection!.invoke('JoinRoom', room);
         } catch (error) {
