@@ -28,6 +28,39 @@ export interface ReadingNotification {
   ingestedAtUtc: string;
 }
 
+// Mirrors Notifications.Application.ThresholdAlert - pushed as event "ReceiveAlert" on the
+// same hub/groups as ReceiveReading. `rule` is an open string, not a closed enum: the
+// evaluator can add rules server-side without a frontend change, so formatAlertMessage
+// below always has a generic fallback rather than assuming only the known rules can occur.
+export interface ThresholdAlertNotification {
+  room: string;
+  readingType: string;
+  rule: string;
+  value: number;
+  threshold: number;
+  ingestedAtUtc: string;
+}
+
+// CSS can't import a TS identifier - styles.sass's `.alert-snackbar` rule must keep this
+// string in sync by hand.
+export const ALERT_SNACKBAR_PANEL_CLASS = 'alert-snackbar';
+
+export function formatAlertMessage(alert: ThresholdAlertNotification): string {
+  const { room, readingType, rule, value, threshold } = alert;
+
+  switch (rule) {
+    case 'AirQuality.Co2.ExceedsThreshold':
+      // Same precision convention as reading-display.ts's displayValue.
+      return `${room}: CO2 ${value.toFixed(0)} ppm exceeds threshold ${threshold.toFixed(0)}`;
+    case 'AirQuality.Pm25.ExceedsThreshold':
+      return `${room}: PM2.5 ${value.toFixed(1)} µg/m³ exceeds threshold ${threshold.toFixed(1)} µg/m³`;
+    case 'Motion.Detected':
+      return `${room}: motion detected`;
+    default:
+      return `${room}: ${readingType} alert (${rule}) — value ${value}, threshold ${threshold}`;
+  }
+}
+
 export function toReadingRow(notification: ReadingNotification): ReadingRow {
   const { room, payload, ingestedAtUtc } = notification;
 
