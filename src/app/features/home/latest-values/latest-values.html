@@ -15,7 +15,7 @@
     <p class="room-count">{{ rooms().length }} room(s) reporting</p>
 
     <ul class="readings-list">
-      @for (reading of readings(); track reading.id) {
+      @for (reading of readings(); track reading.room + reading.__typename) {
         <li class="reading-row">
           <span class="reading-room">{{ reading.room }}</span>
           <span class="reading-type">{{ typeLabel(reading) }}</span>
