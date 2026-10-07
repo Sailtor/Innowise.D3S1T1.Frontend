@@ -44,7 +44,9 @@ describe('FilterBar', () => {
     flushRooms(controller, ['Kitchen', 'Lobby']);
     await fixture.whenStable();
 
-    (fixture.componentInstance as unknown as { onRoomsChange: (rooms: string[]) => void }).onRoomsChange(['Lobby']);
+    (
+      fixture.componentInstance as unknown as { onRoomsChange: (rooms: string[]) => void }
+    ).onRoomsChange(['Lobby']);
 
     expect(filters.rooms()).toEqual(['Lobby']);
   });
@@ -57,7 +59,9 @@ describe('FilterBar', () => {
     await fixture.whenStable();
 
     (
-      fixture.componentInstance as unknown as { onTypeChange: (type: MetricReadingType | null) => void }
+      fixture.componentInstance as unknown as {
+        onTypeChange: (type: MetricReadingType | null) => void;
+      }
     ).onTypeChange(MetricReadingType.Energy);
 
     expect(filters.type()).toBe(MetricReadingType.Energy);
@@ -70,9 +74,9 @@ describe('FilterBar', () => {
     flushRooms(controller);
     await fixture.whenStable();
 
-    const typeLabel = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('mat-label')).find(
-      (el) => el.textContent === 'Type',
-    );
+    const typeLabel = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('mat-label'),
+    ).find((el) => el.textContent === 'Type');
     expect(typeLabel).toBeUndefined();
   });
 
@@ -94,7 +98,9 @@ describe('FilterBar', () => {
     const fixture = TestBed.createComponent(FilterBar);
     fixture.detectChanges();
 
-    controller.expectOne(DashboardFiltersRoomsDocument).networkError(new Error('Gateway unreachable'));
+    controller
+      .expectOne(DashboardFiltersRoomsDocument)
+      .networkError(new Error('Gateway unreachable'));
     await fixture.whenStable();
 
     expect(filters.roomsError()).toBeTruthy();
@@ -108,9 +114,9 @@ describe('FilterBar', () => {
     flushRooms(controller);
     await fixture.whenStable();
 
-    (fixture.componentInstance as unknown as { onRangeChange: (durationMs: number) => void }).onRangeChange(
-      RANGE_PRESETS[0].durationMs,
-    );
+    (
+      fixture.componentInstance as unknown as { onRangeChange: (durationMs: number) => void }
+    ).onRangeChange(RANGE_PRESETS[0].durationMs);
 
     expect(filters.rangeDurationMs()).toBe(RANGE_PRESETS[0].durationMs);
   });

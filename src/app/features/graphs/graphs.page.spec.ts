@@ -2,7 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ApolloTestingController, ApolloTestingModule } from 'apollo-angular/testing';
 import { GraphsPage } from './graphs.page';
-import { AggregationChartsDocument, DashboardFiltersRoomsDocument } from '../../core/graphql/generated/graphql';
+import {
+  AggregationChartsDocument,
+  DashboardFiltersRoomsDocument,
+} from '../../core/graphql/generated/graphql';
 
 describe('GraphsPage', () => {
   let controller: ApolloTestingController;

@@ -1,0 +1,81 @@
+name: Build and Push Docker image to GHCR (with format check and tests)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: sailtor/innowise.d3s1t1.frontend
+
+# A second push to the same branch makes the first run's result irrelevant.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      # No ng lint/ESLint is configured in this repo yet - prettier is the only formatting
+      # tool wired up, so this is the closest equivalent to the other repos' `dotnet format
+      # --verify-no-changes` gate. .sass is excluded: Prettier has no parser for the
+      # indented Sass syntax this repo uses without an extra plugin (out of scope here).
+      - name: Check formatting
+        run: npx prettier --check "src/**/*.{ts,html}"
+
+  test:
+    needs: format-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      # Single-run mode: ng test's default watch-capable Karma run would hang this job.
+      - name: Test
+        run: npm run test:ci
+
+  build-and-push:
+    needs: [format-check, test]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # Tagged by SHA as well as latest: :latest alone leaves no way to roll back or to say
+      # which commit is actually running.
+      - name: Build and Push docker image
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}

@@ -1,0 +1,14 @@
+.git
+.github
+.angular
+.vscode
+dist
+node_modules
+coverage
+npm-debug.log
+LICENSE
+README.md
+Dockerfile*
+docker-compose*
+**/*.md
+**/*.spec.ts

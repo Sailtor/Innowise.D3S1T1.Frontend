@@ -3,6 +3,7 @@ import { isPlatformServer } from '@angular/common';
 import { ApolloClient, InMemoryCache, NormalizedCacheObject } from '@apollo/client';
 import { provideApollo } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
+import { environment } from '../../../environments/environment';
 
 // Keep this port in sync with proxy.conf.json's target (client-side calls go through
 // that dev-server proxy, not this URL; this is only the server-side/SSR fallback).
@@ -20,7 +21,9 @@ export function provideGraphQL(): ApplicationConfig['providers'] {
       const platformId = inject(PLATFORM_ID);
       const transferState = inject(TransferState);
       const isServer = isPlatformServer(platformId);
-      const uri = isServer ? (process.env['GATEWAY_GRAPHQL_URL'] ?? DEFAULT_SERVER_GRAPHQL_URL) : '/graphql';
+      const uri = isServer
+        ? (process.env['GATEWAY_GRAPHQL_URL'] ?? DEFAULT_SERVER_GRAPHQL_URL)
+        : environment.gatewayGraphqlUrl;
 
       const cache = new InMemoryCache();
 

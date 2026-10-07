@@ -24,7 +24,9 @@
   @if (showInitialLoading()) {
     <div class="chart-skeleton" aria-busy="true" aria-live="polite">Loading chart...</div>
   } @else if (error() && !hasData()) {
-    <div class="error-banner" role="alert">Could not load the chart data. {{ error()?.message }}</div>
+    <div class="error-banner" role="alert">
+      Could not load the chart data. {{ error()?.message }}
+    </div>
   } @else if (!hasData()) {
     <p class="empty-state">No readings in the selected range.</p>
   } @else {
@@ -32,7 +34,9 @@
       <mat-progress-bar mode="indeterminate" />
     }
     @if (error()) {
-      <div class="error-banner" role="alert">Showing previously loaded data - refresh failed. {{ error()?.message }}</div>
+      <div class="error-banner" role="alert">
+        Showing previously loaded data - refresh failed. {{ error()?.message }}
+      </div>
     }
     <div class="chart-container">
       <canvas baseChart type="line" [data]="chartData()" [options]="chartOptions()"></canvas>

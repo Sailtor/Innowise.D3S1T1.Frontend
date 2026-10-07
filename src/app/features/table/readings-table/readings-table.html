@@ -20,7 +20,13 @@
     }
 
     <div class="table-scroll">
-      <table mat-table [dataSource]="rows()" matSort (matSortChange)="onSort($event)" class="readings-mat-table">
+      <table
+        mat-table
+        [dataSource]="rows()"
+        matSort
+        (matSortChange)="onSort($event)"
+        class="readings-mat-table"
+      >
         <ng-container matColumnDef="room">
           <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Room</th>
           <td mat-cell *matCellDef="let reading">{{ reading.room }}</td>
@@ -45,7 +51,9 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns" class="reading-row"></tr>
 
         <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" [attr.colspan]="displayedColumns.length">No readings match the current filters.</td>
+          <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+            No readings match the current filters.
+          </td>
         </tr>
       </table>
     </div>

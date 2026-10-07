@@ -18,7 +18,10 @@ export const RANGE_PRESETS: RangePreset[] = [
   { label: 'Last 30 days', durationMs: 30 * DAY_MS },
 ];
 
-export function presetToRange(durationMs: number, now: Date = new Date()): { from: string; to: string } {
+export function presetToRange(
+  durationMs: number,
+  now: Date = new Date(),
+): { from: string; to: string } {
   return {
     from: new Date(now.getTime() - durationMs).toISOString(),
     to: now.toISOString(),
@@ -28,7 +31,9 @@ export function presetToRange(durationMs: number, now: Date = new Date()): { fro
 @Injectable({ providedIn: 'root' })
 export class DashboardFiltersService {
   private readonly roomsGQL = inject(DashboardFiltersRoomsGQL);
-  private readonly roomsResult = toSignal(this.roomsGQL.watch().valueChanges, { initialValue: undefined });
+  private readonly roomsResult = toSignal(this.roomsGQL.watch().valueChanges, {
+    initialValue: undefined,
+  });
 
   readonly roomOptions = computed(() => {
     const current = this.roomsResult();

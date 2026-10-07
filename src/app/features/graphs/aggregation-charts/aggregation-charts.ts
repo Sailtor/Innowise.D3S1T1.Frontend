@@ -17,7 +17,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSlideToggleModule, MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { AggregationChartsGQL, AggregationChartsQuery } from '../../../core/graphql/generated/graphql';
+import {
+  AggregationChartsGQL,
+  AggregationChartsQuery,
+} from '../../../core/graphql/generated/graphql';
 import {
   AggregationField,
   MetricAggregationInput,
@@ -45,8 +48,14 @@ function formatBucketLabel(iso: string, interval: TimeInterval): string {
 // Shared by the grouped/ungrouped branches of `chartData`: aligns one series' buckets to
 // the full, sorted label order, leaving a `null` (Chart.js gap, D-6) wherever that series
 // has no bucket for a given label.
-function buildSeriesData(buckets: Bucket[], labelOrder: string[], field: AggregationField): (number | null)[] {
-  const byLabel = new Map<string, Bucket>(buckets.map((bucket) => [bucket.bucketStart ?? '', bucket]));
+function buildSeriesData(
+  buckets: Bucket[],
+  labelOrder: string[],
+  field: AggregationField,
+): (number | null)[] {
+  const byLabel = new Map<string, Bucket>(
+    buckets.map((bucket) => [bucket.bucketStart ?? '', bucket]),
+  );
   return labelOrder.map((iso) => {
     const average = byLabel.get(iso)?.stats.average;
     return average === null || average === undefined ? null : toChartValue(field, average);
@@ -66,7 +75,13 @@ const CHART_REGISTERABLES = [
 
 @Component({
   selector: 'app-aggregation-charts',
-  imports: [BaseChartDirective, MatSelectModule, MatFormFieldModule, MatSlideToggleModule, MatProgressBarModule],
+  imports: [
+    BaseChartDirective,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatSlideToggleModule,
+    MatProgressBarModule,
+  ],
   // Registered here (not in app.config.ts) so Chart.js only loads into this lazy
   // route's chunk, not the eagerly-bootstrapped main bundle (it blew the 1MB initial
   // bundle budget when registered at the root - see spec.md criterion 7). Only the
@@ -105,8 +120,10 @@ export class AggregationCharts {
 
   private readonly result = toSignal(
     toObservable(this.variables).pipe(
-      switchMap((vars) =>
-        this.aggregationChartsGQL.watch({ variables: vars, notifyOnNetworkStatusChange: true }).valueChanges,
+      switchMap(
+        (vars) =>
+          this.aggregationChartsGQL.watch({ variables: vars, notifyOnNetworkStatusChange: true })
+            .valueChanges,
       ),
     ),
     { initialValue: undefined },
@@ -128,28 +145,41 @@ export class AggregationCharts {
     });
   }
 
-  protected readonly hasData = computed(() => (this.lastCompleteData()?.metricAggregation.length ?? 0) > 0);
-  protected readonly showInitialLoading = computed(() => this.loading() && this.lastCompleteData() === undefined);
+  protected readonly hasData = computed(
+    () => (this.lastCompleteData()?.metricAggregation.length ?? 0) > 0,
+  );
+  protected readonly showInitialLoading = computed(
+    () => this.loading() && this.lastCompleteData() === undefined,
+  );
 
   protected readonly chartData = computed<ChartConfiguration<'line'>['data']>(() => {
     const buckets = this.lastCompleteData()?.metricAggregation ?? [];
     const activeInterval = this.interval();
     const activeField = this.field();
 
-    const sorted = [...buckets].sort((a, b) => (a.bucketStart ?? '').localeCompare(b.bucketStart ?? ''));
-    const labelOrder = [...new Set(sorted.map((bucket) => bucket.bucketStart).filter((v): v is string => v !== null))];
+    const sorted = [...buckets].sort((a, b) =>
+      (a.bucketStart ?? '').localeCompare(b.bucketStart ?? ''),
+    );
+    const labelOrder = [
+      ...new Set(sorted.map((bucket) => bucket.bucketStart).filter((v): v is string => v !== null)),
+    ];
     const labels = labelOrder.map((iso) => formatBucketLabel(iso, activeInterval));
 
     if (!this.groupByRoom()) {
       return {
         labels,
         datasets: [
-          { label: AGGREGATION_FIELD_LABEL[activeField], data: buildSeriesData(sorted, labelOrder, activeField) },
+          {
+            label: AGGREGATION_FIELD_LABEL[activeField],
+            data: buildSeriesData(sorted, labelOrder, activeField),
+          },
         ],
       };
     }
 
-    const rooms = [...new Set(sorted.map((bucket) => bucket.room).filter((v): v is string => v !== null))];
+    const rooms = [
+      ...new Set(sorted.map((bucket) => bucket.room).filter((v): v is string => v !== null)),
+    ];
     return {
       labels,
       datasets: rooms.map((room) => ({
